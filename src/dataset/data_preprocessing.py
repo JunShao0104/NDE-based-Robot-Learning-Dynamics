@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, random_split
+from dataset.dynamics_dataset import SingleStepDynamicsDataset, MultiStepDynamicsDataset
 
 def collect_data_random(env, num_trajectories=1000, trajectory_length=10):
     """

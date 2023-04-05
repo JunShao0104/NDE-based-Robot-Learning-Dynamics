@@ -12,9 +12,12 @@ class GIFVisualizer(object):
     def reset(self):
         self.frames = []
 
-    def get_gif(self):
+    def get_gif(self, given_name=None):
         # generate the gif
-        filename = 'pushing_visualization.gif'
+        if given_name is None:
+            filename = 'pushing_visualization.gif'
+        else:
+            filename = given_name
         print("Creating animated gif, please wait about 10 seconds")
         numpngw.write_apng(filename, self.frames, delay=10)
         return filename

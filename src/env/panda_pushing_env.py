@@ -13,7 +13,10 @@ import argparse
 
 # get the path to assets
 # hw_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)).split('/HW3')[0], 'HW3')
-hw_dir = os.path.dirname(os.path.abspath(__file__))
+# hw_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Change the dir to your own!!
+hw_dir = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/'
 assets_dir = os.path.join(hw_dir, 'assets')
 
 
@@ -112,6 +115,7 @@ class PandaPushingEnv(gym.Env):
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)  # we will enable rendering after we loaded everything
 
         # Add panda to the scene
+        # print(assets_dir)
         self.pandaUid = p.loadURDF(os.path.join(assets_dir, "franka_panda/panda.urdf"), useFixedBase=True)
         for i in range(len(self.init_panda_joint_state)):
             p.resetJointState(self.pandaUid, i, self.init_panda_joint_state[i])

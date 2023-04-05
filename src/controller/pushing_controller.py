@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, random_split
 # from tqdm import tqdm
-from panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, OBSTACLE_HALFDIMS, OBSTACLE_CENTRE, BOX_SIZE
+from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, OBSTACLE_HALFDIMS, OBSTACLE_CENTRE, BOX_SIZE
 
 TARGET_POSE_FREE_TENSOR = torch.as_tensor(TARGET_POSE_FREE, dtype=torch.float32)
 TARGET_POSE_OBSTACLES_TENSOR = torch.as_tensor(TARGET_POSE_OBSTACLES, dtype=torch.float32)
@@ -31,7 +31,7 @@ class PushingController(object):
         noise_sigma = 0.5 * torch.eye(env.action_space.shape[0])
         lambda_value = 0.01
         # ---
-        from mppi import MPPI
+        from controller.mppi import MPPI
         self.mppi = MPPI(self._compute_dynamics,
                          cost_function,
                          nx=state_dim,
