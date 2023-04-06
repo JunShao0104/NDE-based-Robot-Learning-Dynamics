@@ -1,1 +1,8 @@
-/src/PolyInception_based_Learning_Dynamics.ipynb
+__pycache__/
+src/controller/__pycache__/
+src/dataset/__pycache__/
+src/env/__pycache__/
+src/model/__pycache__/
+src/utils/__pycache__/
+
+src/PolyInception_based_Learning_Dynamics.ipynb
