@@ -1,5 +1,6 @@
 # NDE-based-Robot-Learning-Dynamics
 Numerical Differential Equations based Learning Dynamics for Robotic Systems
+![image](https://github.com/JunShao0104/NDE-based-Robot-Learning-Dynamics/blob/main/fig/obstacle_avoidance_pushing_visualization.gif)
 
 ## 0 Installation
 ### A Prerequisites
