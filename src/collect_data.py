@@ -11,7 +11,6 @@ from numpngw import write_apng
 from IPython.display import Image
 from tqdm.notebook import tqdm
 from env.panda_pushing_env import PandaPushingEnv
-from utils.visualizers import GIFVisualizer, NotebookVisualizer
 
 # Collect data (it may take some time)
 from dataset.data_preprocessing import collect_data_random
