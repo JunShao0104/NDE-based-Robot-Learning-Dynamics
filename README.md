@@ -42,6 +42,19 @@ python collect_data.py
 python single_step_training.py
 python multi_step_training.py
  ```
+ 
+### 1.3 Neural ODE based Learning Dynamics
+Need a discussion!! Not sure about whether this is correct...
+We refer to torchdiffeq (https://github.com/rtqichen/torchdiffeq) for implementing the Neural ODE based Learning Dynamics. Since the odeint(_adjoint) method require the input and output dimension are the same and only take in two arguments (a time variable and a state variable), we have to concatenate the state x and the action u together and learn the IVP (Initial Value Problem) with the differential equation:
+
+concat(x(t+1), u(t+1))= concat(x(t), u(t)) + f'(x(t), u(t), t)
+
+Then, we use a MLP to project the prediction concat(x(t+1), u(t+1))' back to the state x(t+1)'.
+```bash
+# Before training, change the ckpt_path and data_path
+python neural_ode_learning.py
+```
+
 
 ## 2 Panda Robot Planning and Control
 ### 2.1 Obstacle Free Pushing

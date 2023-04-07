@@ -47,6 +47,8 @@ def collect_data(N=None, T=None, data_path=None):
 if __name__ == "__main__":
     N = 100
     T = 10
+    # Change this path to the folder where you save the collected data!
+    # Supposed to under /data folder
     data_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/data'
     collect_data(N, T, data_path)
     

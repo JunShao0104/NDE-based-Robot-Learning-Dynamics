@@ -135,3 +135,86 @@ def process_data_multiple_step(collected_data, batch_size=500, num_steps=4):
 
     # ---
     return train_loader, val_loader
+
+
+def process_data_continuous_batch(collected_data):
+    """
+    Process the collected data and returns batch data for train.
+    The data provided is a list of trajectories (like collect_data_random output).
+    : param collected_data: dict of dict. len(dict) = num trajectory. each dict: "states" (T+1, S); "actions" (T, A)
+    Return: batch_y0, batch_t, batch_y
+    batch_y0: (M, D). M is the bacth size, num trajectory. D is the concatenation dimension of state and action. D = S + A
+    batch_t: (T, ). 1-D tensor. T is the trajectory length.
+    batch_y: (T, M, D).
+    """
+    M = len(collected_data) # batch size; num trajectory
+    T = collected_data[0]['actions'].shape[0] # time step, trajectory length
+    S = collected_data[0]['states'].shape[1] # state dimension
+    A = collected_data[0]['actions'].shape[1] # action dimension
+
+    # Form batch_y0
+    batch_y0 = None
+    for m in range(M):
+        state_action = torch.cat((torch.from_numpy(collected_data[m]['states'][0:1, :]), torch.from_numpy(collected_data[m]['actions'][0:1, :])), dim=1) # (1, D)
+        if batch_y0 is None:
+            batch_y0 = state_action
+        else:
+            batch_y0 = torch.vstack((batch_y0, state_action)) # (M, D)
+    
+    # Form batch_t
+    batch_t = torch.arange(T).float() # (T, )
+
+    # Form batch_y
+    batch_y = None
+    for m in range(M):
+        state_T = torch.from_numpy(collected_data[m]['states'][:T, :]) # (T, S)
+        action_T = torch.from_numpy(collected_data[m]['actions'][:T, :]) # (T, A)
+        state_action_T = torch.cat((state_T, action_T), dim=1) # (T, D)
+        if batch_y is None:
+            batch_y = state_action_T.unsqueeze(1)
+        else:
+            batch_y = torch.cat((batch_y, state_action_T.unsqueeze(1)), dim=1) # (T, M, D)
+    
+
+    return batch_y0, batch_t, batch_y
+
+
+def process_data_continuous_batch_no_action(collected_data):
+    """
+    Process the collected data and returns batch data for train.
+    The data provided is a list of trajectories (like collect_data_random output).
+    : param collected_data: dict of dict. len(dict) = num trajectory. each dict: "states" (T+1, S); "actions" (T, A)
+    Return: batch_y0, batch_t, batch_y
+    batch_y0: (M, S). M is the bacth size, num trajectory. D is the dimension of state.
+    batch_t: (T, ). 1-D tensor. T is the trajectory length.
+    batch_y: (T, M, S).
+    """
+    M = len(collected_data) # batch size; num trajectory
+    T = collected_data[0]['actions'].shape[0] # time step, trajectory length
+    S = collected_data[0]['states'].shape[1] # state dimension
+
+    # Form batch_y0
+    batch_y0 = None
+    for m in range(M):
+        state = torch.from_numpy(collected_data[m]['states'][0:1, :])
+        if batch_y0 is None:
+            batch_y0 = state
+        else:
+            batch_y0 = torch.vstack((batch_y0, state)) # (M, S)
+    
+    # Form batch_t
+    batch_t = torch.arange(T).float() # (T, )
+
+    # Form batch_y
+    batch_y = None
+    for m in range(M):
+        state_T = torch.from_numpy(collected_data[m]['states'][:T, :]) # (T, S)
+        if batch_y is None:
+            batch_y = state_T.unsqueeze(1)
+        else:
+            batch_y = torch.cat((batch_y, state_T.unsqueeze(1)), dim=1) # (T, M, S)
+    
+    # print("batch_y0 shape: ", batch_y0.shape) # (100, 3)
+    # print("batch_t shape: ", batch_t.shape) # (10)
+    # print("batch_y shape: ", batch_y.shape) # (10, 100, 3)
+    return batch_y0, batch_t, batch_y
