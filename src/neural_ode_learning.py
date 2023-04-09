@@ -87,7 +87,7 @@ def train():
     pose_loss = SE2PoseLoss_3dim(block_width=0.1, block_length=0.1)
 
     # training process
-    lr = 1e-5
+    lr = 1e-4
     num_epochs = 20000
 
     # optimizer
@@ -95,7 +95,7 @@ def train():
     params_projNN = projNN.parameters()
     total_params = itertools.chain(params_func, params_projNN)
     # optimizer = optim.RMSprop(total_params, lr=lr)
-    optimizer = torch.optim.Adam(total_params, lr = lr, weight_decay=1e-6)
+    optimizer = torch.optim.Adam(total_params, lr = lr, weight_decay=0.01)
 
     # pbar = tqdm(range(num_epochs))
     train_losses = [] # record the history of training loss
@@ -121,8 +121,10 @@ def train():
     
 
     # save model:
-    save_path = os.path.join(ckpt_path, 'ODEFunc.pt')
-    torch.save(func.state_dict(), save_path)
+    ode_save_path = os.path.join(ckpt_path, 'ODEFunc.pt')
+    torch.save(func.state_dict(), ode_save_path)
+    proj_save_path = os.path.joint(ckpt_path, 'ProjNN.pt')
+    torch.save(projNN.state_dict(), proj_save_path)
 
 
 if __name__ == "__main__":
