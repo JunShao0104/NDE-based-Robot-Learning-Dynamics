@@ -4,7 +4,7 @@ Numerical Differential Equations based Learning Dynamics for Robotic Systems
 
 ## 0 Installation
 ### A Prerequisites
-Install Python 3, pybullet, numpy, pytorch, and matplotlib.
+Install Python 3, pybullet, numpy, pytorch (version >=1.13.0), and matplotlib.
 
 ### B Repository Clone and Packages Installation
 ```bash
@@ -13,7 +13,8 @@ git clone https://github.com/JunShao0104/NDE-based-Robot-Learning-Dynamics.git
 
 # Install Packages
 bash install.sh
-./install.sh
+# or
+# ./install.sh
 ```
 
 ## 1 Robot Learning Dynamics for Panda Planar Pushing

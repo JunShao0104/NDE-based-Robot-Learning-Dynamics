@@ -90,7 +90,7 @@ def process_data_single_step(collected_data, batch_size=500):
     entire_dataset = SingleStepDynamicsDataset(collected_data)
     # len_train_dataset = int(len(entire_dataset)*0.8)
     # len_val_dataset = len(entire_dataset) - len_train_dataset
-    train_dataset, val_dataset = random_split(dataset=entire_dataset, lengths=[0.8, 0.2])
+    train_dataset, val_dataset = random_split(entire_dataset, [0.8, 0.2])
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     # ---
@@ -123,13 +123,14 @@ def process_data_multiple_step(collected_data, batch_size=500, num_steps=4):
      - You should implement MultiStepDynamicsDataset below.
         This class extends pytorch Dataset class to have a custom data format.
     """
+    print(torch.__version__)
     train_loader = None
     val_loader = None
     # --- Your code here
     entire_dataset = MultiStepDynamicsDataset(collected_data, num_steps)
     # len_train_dataset = int(len(entire_dataset)*0.8)
     # len_val_dataset = len(entire_dataset) - len_train_dataset
-    train_dataset, val_dataset = random_split(dataset=entire_dataset, lengths=[0.8, 0.2])
+    train_dataset, val_dataset = random_split(entire_dataset,[0.8, 0.2])
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
@@ -189,6 +190,7 @@ def process_data_continuous_batch_no_action(collected_data):
     batch_t: (T, ). 1-D tensor. T is the trajectory length.
     batch_y: (T, M, S).
     """
+
     M = len(collected_data) # batch size; num trajectory
     T = collected_data[0]['actions'].shape[0] # time step, trajectory length
     S = collected_data[0]['states'].shape[1] # state dimension

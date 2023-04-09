@@ -52,6 +52,7 @@ class PushingController(object):
         next_state = None
         # --- Your code here
         next_state = self.model(state, action)
+        print(next_state.device())
 
         # ---
         return next_state

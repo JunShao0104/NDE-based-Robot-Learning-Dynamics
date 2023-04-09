@@ -29,10 +29,10 @@ from dataset.loss import SE2PoseLoss
 from dataset.loss import MultiStepLoss
 
 # pth path:
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 # Load the collected data:
-data_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/data'
+data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data'
 collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
 
 
@@ -59,8 +59,14 @@ def val_step(model, val_loader, loss_func) -> float:
 
 # Training function
 def train():
+    print(torch.cuda.is_available())
+    if(torch.cuda.is_available()):
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cpu")
     # Model
-    pushing_multistep_residual_dynamics_model = ResidualDynamicsModel(3, 3)
+    pushing_multistep_residual_dynamics_model = ResidualDynamicsModel(3, 3).to(DEVICE)
+    print(DEVICE)
 
     # Data loader
     train_loader, val_loader = process_data_multiple_step(collected_data) # batchsize default to be 500
@@ -75,7 +81,6 @@ def train():
 
     # optimizer = torch.optim.SGD(pushing_absolute_dynamics_model.parameters(), lr = lr, weight_decay=1e-7, momentum=0.9)
     optimizer = torch.optim.Adam(pushing_multistep_residual_dynamics_model.parameters(), lr = lr, weight_decay=1e-6)
-
     # pbar = tqdm(range(num_epochs))
     train_losses = [] # record the history of training loss
     val_losses = [] # record the history of validation loss
@@ -86,7 +91,6 @@ def train():
         # pbar.set_description(f'Train Loss: {train_loss_i:.6f} | Validation Loss: {val_loss_i:.6f}')
         train_losses.append(train_loss_i)
         val_losses.append(val_loss_i)
-
         # Print results per 1000 epoch
         if (epoch_i+1) % 1000 == 0:
             print("Epoch %s: ", epoch_i+1)

@@ -8,10 +8,11 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 from numpngw import write_apng
-from IPython.display import Image
+# from IPython.display import Image
 from tqdm.notebook import tqdm
 from env.panda_pushing_env import PandaPushingEnv
 from utils.visualizers import GIFVisualizer, NotebookVisualizer
+from PIL import Image
 
 # Model
 from model.absolute_dynamics_model import AbsoluteDynamicsModel
@@ -28,7 +29,8 @@ from controller.pushing_cost import free_pushing_cost_function, collision_detect
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
 # pth path
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+visualizer_path  = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/fig'
+ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 def obstacle_avoidance_pushing():
     # Control on an obstacle free environment
@@ -76,7 +78,11 @@ def obstacle_avoidance_pushing():
             
     # Evaluate state
     # plt.close(fig)
-    Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization.gif'))
+    # save_path = os.path.join(visualizer_path, 'obstacle_avoidance_pushing_visualization.gif')
+    
+    gif = visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization.gif')
+    # torch.save(gif, save_path)
+    # gif.save(filename=gif)
 
 
 if __name__ == "__main__":

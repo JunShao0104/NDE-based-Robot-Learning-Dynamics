@@ -16,7 +16,7 @@ import argparse
 # hw_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Change the dir to your own!!
-hw_dir = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/'
+hw_dir = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/'
 assets_dir = os.path.join(hw_dir, 'assets')
 
 

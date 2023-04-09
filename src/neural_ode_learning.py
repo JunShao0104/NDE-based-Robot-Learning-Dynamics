@@ -27,10 +27,10 @@ from torchdiffeq import odeint_adjoint as odeint
 import itertools
 
 # pth path:
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 # Load the collected data:
-data_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/data'
+data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data'
 collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
 
 # func
@@ -73,14 +73,18 @@ class ProjectionNN(nn.Module):
 
 # Training function
 def train():
+    if(torch.cuda.is_available()):
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cpu")
     # Data
     batch_y0, batch_t, batch_y = process_data_continuous_batch(collected_data)
 
     # Func
-    func = ODEFunc()
+    func = ODEFunc().to(DEVICE)
 
     # Proj
-    projNN = ProjectionNN()
+    projNN = ProjectionNN().to(DEVICE)
 
     # Loss function
     # pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
@@ -96,6 +100,7 @@ def train():
     total_params = itertools.chain(params_func, params_projNN)
     # optimizer = optim.RMSprop(total_params, lr=lr)
     optimizer = torch.optim.Adam(total_params, lr = lr, weight_decay=1e-6)
+    print(optimizer.device())
 
     # pbar = tqdm(range(num_epochs))
     train_losses = [] # record the history of training loss

@@ -29,10 +29,10 @@ from dataset.loss import SE2PoseLoss
 from dataset.loss import SingleStepLoss
 
 # pth path:
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 # Load the collected data:
-data_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/data'
+data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data'
 collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
 
 
@@ -59,8 +59,12 @@ def val_step(model, val_loader, loss_func) -> float:
 
 # Training function
 def train():
+    if(torch.cuda.is_available()):
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cpu")
     # Model
-    pushing_absolute_dynamics_model = AbsoluteDynamicsModel(3, 3)
+    pushing_absolute_dynamics_model = AbsoluteDynamicsModel(3, 3).to(DEVICE)
 
     # Data loader
     train_loader, val_loader = process_data_single_step(collected_data) # batchsize default to be 500

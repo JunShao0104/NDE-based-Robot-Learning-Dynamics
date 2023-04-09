@@ -35,6 +35,7 @@ class ResidualDynamicsModel(nn.Module):
         # --- Your code here
         state_action = torch.cat((state, action), dim=1)
         res_state = self.linear1(state_action)
+        # print(res_state.device)
         res_state = self.relu1(res_state)
         res_state = self.linear2(res_state)
         res_state = self.relu2(res_state)
