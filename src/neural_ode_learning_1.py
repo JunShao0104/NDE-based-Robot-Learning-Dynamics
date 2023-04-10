@@ -67,10 +67,13 @@ def train():
     for epoch_i in range(num_epochs):
         optimizer.zero_grad()
         batch_y0 = batch_y0.to(DEVICE)
+        print("batch_y0 shape: ", batch_y0.shape) # (10, 100, 3) (T, M, D)
+        state = batch_y0[:, :3]
+        action = batch_y0[:, 3:]
+        print(state.shape, action.shape)
         batch_t = batch_t.to(DEVICE)
-        pred_y_proj = func(batch_y0, batch_t)
+        pred_y_proj = func(state,action, batch_t)
         batch_y_proj = batch_y[:, :, :3]
-        # print("batch_y_proj shape: ", batch_y_proj.shape) # (10, 100, 3) (T, M, D)
         # print("pred_y_proj shape: ", pred_y_proj.shape)
         loss = pose_loss(pred_y_proj, batch_y_proj)
         loss.backward()

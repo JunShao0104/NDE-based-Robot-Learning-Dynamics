@@ -50,7 +50,7 @@ def obstacle_avoidance_pushing_ode():
 
     # Load the pushing dynamics model
     NeuralODE_model = NeuralODE(3,3,DEVICE).to(DEVICE)
-    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_w_proj.pt')
+    ode_pth_path = os.path.join(ckpt_path, 'pushing_absolute_dynamics_model.pt')
     NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
 
     controller = PushingController(env, NeuralODE_model,
@@ -64,6 +64,7 @@ def obstacle_avoidance_pushing_ode():
     # print(state.shape)
     cur_step = 0
     for i in range(num_steps_max):
+        print(state.shape)
         action = controller.control(state)
         state, reward, done, _ = env.step(action)
         if done:
@@ -83,7 +84,7 @@ def obstacle_avoidance_pushing_ode():
 
     # Evaluate state
     # plt.close(fig)
-    name = 'ode_obs_avoid_visual_1.gif'
+    name = 'ode_obs_avoid_visual_singe_step_T_3_collsfac_110.gif'
     Image(filename=visualizer.get_gif(given_name=name))
     print("Gif has been writted to: ", name)
 

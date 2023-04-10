@@ -87,7 +87,8 @@ class SingleStepLoss(nn.Module):
         single_step_loss = None
         # --- Your code here
         target_state = target_state.to(self.device)
-        pred_state = model(state, action)
+        t = torch.arange(3).float().to(self.device)
+        pred_state = model(state, action,t)
         single_step_loss = self.loss(pred_state, target_state)
 
         # ---
