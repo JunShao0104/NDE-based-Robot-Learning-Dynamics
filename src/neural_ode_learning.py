@@ -87,8 +87,8 @@ def train():
     pose_loss = SE2PoseLoss_3dim(block_width=0.1, block_length=0.1)
 
     # training process
-    lr = 1e-4
-    num_epochs = 20000
+    lr = 2e-5
+    num_epochs = 10000
 
     # optimizer
     params_func = func.parameters()
@@ -123,7 +123,7 @@ def train():
     # save model:
     ode_save_path = os.path.join(ckpt_path, 'ODEFunc.pt')
     torch.save(func.state_dict(), ode_save_path)
-    proj_save_path = os.path.joint(ckpt_path, 'ProjNN.pt')
+    proj_save_path = os.path.join(ckpt_path, 'ProjNN.pt')
     torch.save(projNN.state_dict(), proj_save_path)
 
 

@@ -57,7 +57,7 @@ def obstacle_avoidance_pushing_ode():
     state_0 = env.reset()
     state = state_0
 
-    num_steps_max = 100
+    num_steps_max = 50
 
     for i in range(num_steps_max):
         action = controller.control(state)

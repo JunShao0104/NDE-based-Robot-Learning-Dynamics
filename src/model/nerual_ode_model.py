@@ -28,8 +28,8 @@ class NeuralODE(nn.Module):
       next_state = None
       state_action = torch.cat((state, action), dim=1) # (B, 6)
       t = torch.arange(10).float() # (10, )
-      next_state_action = odeint(self.odefunc, state_action, t) # (10, B, 3)
-      next_state = self.projnn(next_state_action.reshape(-1, next_state_action.shape[1])).reshape(t.shape[0], state.shape[0], -1) # (10, B, 3)
+      next_state_action = odeint(self.odefunc, state_action, t) # (10, B, 6)
+      next_state = self.projnn(next_state_action.reshape(-1, next_state_action.shape[2])).reshape(t.shape[0], state.shape[0], -1) # (10, B, 3)
       next_state = next_state[0]
 
       return next_state
