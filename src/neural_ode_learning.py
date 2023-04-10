@@ -15,6 +15,7 @@ from env.panda_pushing_env import PandaPushingEnv
 # Process the data
 from dataset.data_preprocessing import process_data_continuous_batch
 from dataset.data_preprocessing import process_data_continuous_batch_no_action
+from dataset.data_preprocessing import process_data_continuous_batch_step
 
 # Loss
 from dataset.loss import SE2PoseLoss
@@ -27,11 +28,14 @@ from torchdiffeq import odeint_adjoint as odeint
 import itertools
 
 # pth path:
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 # Load the collected data:
-data_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/data'
+data_path = '/mnt/NDE-based-Robot-Learning-Dynamics/data'
 collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
+
+# Device
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # func
 class ODEFunc(nn.Module):
@@ -49,7 +53,7 @@ class ODEFunc(nn.Module):
                 nn.init.constant_(m.bias, val=0)
     
     def forward(self, t, y):
-        pred_y = self.net(y) # (T, 3)
+        pred_y = self.net(y)
         # pred_y_action = torch.zeros_like(pred_y) # (T, 3)
         # pred_y = torch.cat((pred_y, pred_y_action), dim=1) # (T, 6)
 
@@ -74,28 +78,31 @@ class ProjectionNN(nn.Module):
 # Training function
 def train():
     # Data
-    batch_y0, batch_t, batch_y = process_data_continuous_batch(collected_data)
+    batch_y0, batch_t, batch_y = process_data_continuous_batch_step(collected_data, T=5)
+    batch_y0 = batch_y0.to(device)
+    batch_t = batch_t.to(device)
+    batch_y = batch_y.to(device)
 
     # Func
-    func = ODEFunc()
+    func = ODEFunc().to(device)
 
     # Proj
-    projNN = ProjectionNN()
+    projNN = ProjectionNN().to(device)
 
     # Loss function
     # pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
     pose_loss = SE2PoseLoss_3dim(block_width=0.1, block_length=0.1)
 
     # training process
-    lr = 2e-5
-    num_epochs = 10000
+    lr = 1e-5
+    num_epochs = 25000
 
     # optimizer
     params_func = func.parameters()
     params_projNN = projNN.parameters()
     total_params = itertools.chain(params_func, params_projNN)
     # optimizer = optim.RMSprop(total_params, lr=lr)
-    optimizer = torch.optim.Adam(total_params, lr = lr, weight_decay=0.01)
+    optimizer = torch.optim.Adam(total_params, lr = lr, weight_decay=1e-6)
 
     # pbar = tqdm(range(num_epochs))
     train_losses = [] # record the history of training loss
@@ -107,8 +114,6 @@ def train():
         # print(pred_y.shape)
         pred_y_proj = projNN(pred_y.reshape(-1, D)).reshape(T, M, -1)
         batch_y_proj = batch_y[:, :, :3]
-        # print("batch_y_proj shape: ", batch_y_proj.shape) # (10, 100, 3) (T, M, D)
-        # print("pred_y_proj shape: ", pred_y_proj.shape)
         loss = pose_loss(pred_y_proj, batch_y_proj)
         loss.backward()
         optimizer.step()

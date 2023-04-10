@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, random_split
+import math
+pi = math.pi
 # from tqdm import tqdm
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, OBSTACLE_HALFDIMS, OBSTACLE_CENTRE, BOX_SIZE
 
@@ -141,4 +143,4 @@ def max_dims(state, box_size):
 
 
 def deg2rad(degree):
-    return torch.Tensor([degree / 180 * torch.pi])
+    return torch.Tensor([degree / 180 * pi])

@@ -29,7 +29,7 @@ from controller.pushing_cost import free_pushing_cost_function, collision_detect
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
 # pth path
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 def obstacle_avoidance_pushing_ode():
     # Control on an obstacle free environment
@@ -51,13 +51,13 @@ def obstacle_avoidance_pushing_ode():
     NeuralODE_model = NeuralODE(ode_pth_path, proj_pth_path)
 
     controller = PushingController(env, NeuralODE_model,
-                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
+                                obstacle_avoidance_pushing_cost_function, num_samples=500, horizon=10)
     env.reset()
 
     state_0 = env.reset()
     state = state_0
 
-    num_steps_max = 50
+    num_steps_max = 30
 
     for i in range(num_steps_max):
         action = controller.control(state)

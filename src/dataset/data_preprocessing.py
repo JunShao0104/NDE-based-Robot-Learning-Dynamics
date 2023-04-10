@@ -218,3 +218,61 @@ def process_data_continuous_batch_no_action(collected_data):
     # print("batch_t shape: ", batch_t.shape) # (10)
     # print("batch_y shape: ", batch_y.shape) # (10, 100, 3)
     return batch_y0, batch_t, batch_y
+
+
+def process_data_continuous_batch_step(collected_data, T=5):
+    """
+    Process the collected data and returns batch data for train.
+    The data provided is a list of trajectories (like collect_data_random output).
+    : param collected_data: dict of dict. len(dict) = num trajectory. each dict: "states" (T+1, S); "actions" (T, A)
+    : param T: the specified step number, supposed to be 1, 2, 5, 10 (divided by 10)
+    Return: batch_y0, batch_t, batch_y
+    batch_y0: (M, S). M is the bacth size, num trajectory. D is the dimension of state.
+    batch_t: (T, ). 1-D tensor. T is the trajectory length.
+    batch_y: (T, M, S).
+    """
+    T_raw = collected_data[0]['actions'].shape[0] # Raw trajectory length
+    T_mul = T_raw / T # 2
+    M_raw = len(collected_data)
+    M = int(M_raw * T_mul) # New batchsize
+    S = collected_data[0]['states'].shape[1] # state dimension
+    A = collected_data[0]['actions'].shape[1] # action dimension
+
+    # Form batch_y0
+    batch_y0 = None
+    for m in range(M):
+        idx = int(m/T_mul)
+        if idx == m / T_mul:
+            state = torch.from_numpy(collected_data[idx]['states'][0:1, :])
+            action = torch.from_numpy(collected_data[idx]['actions'][0:1, :])
+            state_action = torch.cat((state, action), dim=1)
+        else:
+            state = torch.from_numpy(collected_data[idx]['states'][T:T+1, :])
+            action = torch.from_numpy(collected_data[idx]['actions'][T:T+1, :])
+            state_action = torch.cat((state, action), dim=1)
+        if batch_y0 is None:
+            batch_y0 = state_action
+        else:
+            batch_y0 = torch.vstack((batch_y0, state_action)) # (M, S+A)
+    
+    # Form batch_t
+    batch_t = torch.arange(T).float() # (T, )
+
+    # Form batch_y
+    batch_y = None
+    for m in range(M):
+        idx_T = int(m/T_mul)
+        if idx_T == m / T_mul:
+            state_T = torch.from_numpy(collected_data[idx_T]['states'][:T, :]) # (T, S)
+            action_T = torch.from_numpy(collected_data[idx_T]['actions'][:T, :]) # (T, A)
+            state_action_T = torch.cat((state_T, action_T), dim=1) # (T, S+A)
+        else:
+            state_T = torch.from_numpy(collected_data[idx_T]['states'][T:-1, :]) # (T, S)
+            action_T = torch.from_numpy(collected_data[idx_T]['actions'][T:, :]) # (T, A)
+            state_action_T = torch.cat((state_T, action_T), dim=1) # (T, S+A)
+        if batch_y is None:
+            batch_y = state_action_T.unsqueeze(1) # (T, 1, S+A)
+        else:
+            batch_y = torch.cat((batch_y, state_action_T.unsqueeze(1)), dim=1) # (T, M, S+A)
+
+    return batch_y0, batch_t, batch_y
