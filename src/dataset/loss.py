@@ -18,15 +18,19 @@ class SE2PoseLoss(nn.Module):
 
     """
 
-    def __init__(self, block_width, block_length):
+    def __init__(self, block_width, block_length, device = 'cpu'):
         super().__init__()
         self.w = block_width
         self.l = block_length
+        self.device = device
 
     def forward(self, pose_pred, pose_target):
         se2_pose_loss = None
         # --- Your code here
         rg = ((self.w**2 + self.l**2)/12)**0.5
+        # print(pose_pred.dtype, pose_target.dtype)
+        pose_pred = pose_pred.to(self.device)
+        pose_target = pose_target.to(self.device)
         x_loss = F.mse_loss(pose_pred[:, 0], pose_target[:, 0])
         y_loss = F.mse_loss(pose_pred[:, 1], pose_target[:, 1])
         theta_loss = rg * F.mse_loss(pose_pred[:, 2], pose_target[:, 2])
@@ -48,14 +52,17 @@ class SE2PoseLoss_3dim(nn.Module):
 
     """
 
-    def __init__(self, block_width, block_length):
+    def __init__(self, block_width, block_length, device = 'cpu'):
         super().__init__()
         self.w = block_width
         self.l = block_length
+        self.device = device
 
     def forward(self, pose_pred, pose_target):
         se2_pose_loss = None
         # --- Your code here
+        pose_pred = pose_pred.to(self.device)
+        pose_target = pose_target.to(self.device)
         rg = ((self.w**2 + self.l**2)/12)**0.5
         x_loss = F.mse_loss(pose_pred[:, :, 0], pose_target[:, :, 0])
         y_loss = F.mse_loss(pose_pred[:, :, 1], pose_target[:, :, 1])
@@ -68,9 +75,10 @@ class SE2PoseLoss_3dim(nn.Module):
 
 class SingleStepLoss(nn.Module):
 
-    def __init__(self, loss_fn):
+    def __init__(self, loss_fn, device = 'cpu'):
         super().__init__()
         self.loss = loss_fn
+        self.device = device
 
     def forward(self, model, state, action, target_state):
         """
@@ -78,6 +86,7 @@ class SingleStepLoss(nn.Module):
         """
         single_step_loss = None
         # --- Your code here
+        target_state = target_state.to(self.device)
         pred_state = model(state, action)
         single_step_loss = self.loss(pred_state, target_state)
 
@@ -87,10 +96,11 @@ class SingleStepLoss(nn.Module):
 
 class MultiStepLoss(nn.Module):
 
-    def __init__(self, loss_fn, discount=0.99):
+    def __init__(self, loss_fn, discount=0.99, device = 'cpu'):
         super().__init__()
         self.loss = loss_fn
         self.discount = discount
+        self.device = device
 
     def forward(self, model, state, actions, target_states):
         """
@@ -101,6 +111,7 @@ class MultiStepLoss(nn.Module):
         # state: (batchsize, state_size)
         # actions: (batchsize, num_steps, action_size)
         # target_states: (batchsize, num_steps, state_size)
+        target_state = target_state.to(self.device)
         multi_step_loss = 0.0
         num_steps = int(actions.shape[1])
         current_state = state

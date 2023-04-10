@@ -6,3 +6,4 @@ pip install torchdiffeq
 pip install control
 pip install ipython
 pip install tqdm
+pip install gym

@@ -9,10 +9,11 @@ class Poly_2_DynamicsModel(nn.Module):
   """
   Model the dynamics using poly-2 structures s_{t+1} = s_{t} + f(s_{t}) + f(f(s_{t}))
   """
-  def __init__(self, state_dim, action_dim):
+  def __init__(self, state_dim, action_dim, device = 'cpu'):
     super().__init__()
     self.state_dim = state_dim
     self.action_dim = action_dim
+    self.device = device
     self.f = nn.Sequential(
             nn.Linear(state_dim+action_dim, 100), # input layer
             nn.ReLU(),
@@ -34,6 +35,8 @@ class Poly_2_DynamicsModel(nn.Module):
       :return: next_state: torch tensor of shape (..., state_dim)
       """
       next_state = None
+      state = state.to(self.device)
+      action = action.to(self.device)
       state_action_input_f = torch.cat((state, action), dim=1)
       res_state_f = self.f(state_action_input_f)
       state_action_input_f_f = torch.cat((res_state_f, action), dim=1)
@@ -50,10 +53,11 @@ class mPoly_2_DynamicsModel(nn.Module):
   """
   Model the dynamics using mpoly-2 structures s_{t+1} = s_{t} + f(s_{t}) + g(f(s_{t}))
   """
-  def __init__(self, state_dim, action_dim):
+  def __init__(self, state_dim, action_dim, device = 'cpu'):
     super().__init__()
     self.state_dim = state_dim
     self.action_dim = action_dim
+    self.device = device
     self.f = nn.Sequential(
             nn.Linear(state_dim+action_dim, 100), # input layer
             nn.ReLU(),
@@ -82,6 +86,8 @@ class mPoly_2_DynamicsModel(nn.Module):
       :return: next_state: torch tensor of shape (..., state_dim)
       """
       next_state = None
+      state = state.to(self.device)
+      action = action.to(self.device)
       state_action_input_f = torch.cat((state, action), dim=1)
       res_state_f = self.f(state_action_input_f)
       state_action_input_g = torch.cat((res_state_f, action), dim=1)
@@ -96,10 +102,11 @@ class way_2_DynamicsModel(nn.Module):
   """
   Model the dynamics using mpoly-2 structures s_{t+1} = s_{t} + f(s_{t}) + g(s_{t})
   """
-  def __init__(self, state_dim, action_dim):
+  def __init__(self, state_dim, action_dim, device = 'cpu'):
     super().__init__()
     self.state_dim = state_dim
     self.action_dim = action_dim
+    self.device = device
     self.f = nn.Sequential(
             nn.Linear(state_dim+action_dim, 100), # input layer
             nn.ReLU(),
@@ -128,6 +135,8 @@ class way_2_DynamicsModel(nn.Module):
       :return: next_state: torch tensor of shape (..., state_dim)
       """
       next_state = None
+      state = state.to(self.device)
+      action = action.to(self.device)
       state_action_input = torch.cat((state, action), dim=1)
       res_state_f = self.f(state_action_input)
       res_state_g = self.g(state_action_input)

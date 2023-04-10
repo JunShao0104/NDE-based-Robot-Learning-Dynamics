@@ -100,13 +100,14 @@ def train():
     total_params = itertools.chain(params_func, params_projNN)
     # optimizer = optim.RMSprop(total_params, lr=lr)
     optimizer = torch.optim.Adam(total_params, lr = lr, weight_decay=1e-6)
-    print(optimizer.device())
 
     # pbar = tqdm(range(num_epochs))
     train_losses = [] # record the history of training loss
 
     for epoch_i in range(num_epochs):
         optimizer.zero_grad()
+        batch_y0 = batch_y0.to(DEVICE)
+        batch_t = batch_t.to(DEVICE)
         pred_y = odeint(func, batch_y0, batch_t)
         T, M, D = pred_y.shape
         # print(pred_y.shape)
@@ -126,8 +127,10 @@ def train():
     
 
     # save model:
-    save_path = os.path.join(ckpt_path, 'ODEFunc.pt')
-    torch.save(func.state_dict(), save_path)
+    ode_save_path = os.path.join(ckpt_path, 'ODEFunc.pt')
+    torch.save(func.state_dict(), ode_save_path)
+    proj_save_path = os.path.join(ckpt_path, 'ProjNN.pt')
+    torch.save(projNN.state_dict(), proj_save_path)
 
 
 if __name__ == "__main__":

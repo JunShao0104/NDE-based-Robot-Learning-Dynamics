@@ -36,7 +36,10 @@ def obstacle_free_pushing():
     # fig = plt.figure(figsize=(8,8))
     # hfig = display(fig, display_id=True)
     # visualizer = NotebookVisualizer(fig=fig, hfig=hfig)
-
+    if(torch.cuda.is_available()):
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cpu")
     # GIF Visualizer
     visualizer = GIFVisualizer()
 
@@ -44,11 +47,11 @@ def obstacle_free_pushing():
     env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  camera_heigh=800, camera_width=800, render_every_n_steps=5)
     
     # Load the pushing dynamics model
-    pushing_mpoly_2_dynamics_model = mPoly_2_DynamicsModel(3,3)
+    pushing_mpoly_2_dynamics_model = mPoly_2_DynamicsModel(3,3, DEVICE).to(DEVICE)
     mpoly2_model_path = os.path.join(ckpt_path, 'pushing_mpoly_2_dynamics_model.pt')
     pushing_mpoly_2_dynamics_model.load_state_dict(torch.load(mpoly2_model_path))
 
-    controller = PushingController(env, pushing_mpoly_2_dynamics_model, free_pushing_cost_function, num_samples=100, horizon=10)
+    controller = PushingController(env, pushing_mpoly_2_dynamics_model, free_pushing_cost_function, num_samples=100, horizon=10, device= DEVICE)
     env.reset()
 
     state_0 = env.reset()

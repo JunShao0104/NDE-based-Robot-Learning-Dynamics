@@ -11,10 +11,11 @@ class ResidualDynamicsModel(nn.Module):
     Observation: The network only needs to predict the state difference as a function of the state and action.
     """
 
-    def __init__(self, state_dim, action_dim):
+    def __init__(self, state_dim, action_dim, device = 'cpu'):
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.device = device
         # --- Your code here
         self.linear1 = nn.Linear(state_dim+action_dim, 100) # input layer
         self.relu1 = nn.ReLU()
@@ -33,7 +34,9 @@ class ResidualDynamicsModel(nn.Module):
         """
         next_state = None
         # --- Your code here
-        state_action = torch.cat((state, action), dim=1)
+        state = state.to(self.device)
+        action = action.to(self.device)
+        state_action = torch.cat((state, action), dim=1).to(self.device)
         res_state = self.linear1(state_action)
         # print(res_state.device)
         res_state = self.relu1(res_state)

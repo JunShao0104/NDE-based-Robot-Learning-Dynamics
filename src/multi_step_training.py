@@ -65,14 +65,14 @@ def train():
     else:
         DEVICE = torch.device("cpu")
     # Model
-    pushing_multistep_residual_dynamics_model = ResidualDynamicsModel(3, 3).to(DEVICE)
-    print(DEVICE)
+    pushing_multistep_residual_dynamics_model = ResidualDynamicsModel(3, 3, DEVICE).to(DEVICE)
+    print("Currently using device: ", DEVICE)
 
     # Data loader
     train_loader, val_loader = process_data_multiple_step(collected_data) # batchsize default to be 500
 
     # Loss function
-    pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
+    pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1, device= DEVICE)
     pose_loss = MultiStepLoss(pose_loss, discount=0.9)
 
     # training process

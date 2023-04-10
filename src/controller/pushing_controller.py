@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, random_split
+from model.neural_ode_model_1 import NeuralODE
 # from tqdm import tqdm
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, OBSTACLE_HALFDIMS, OBSTACLE_CENTRE, BOX_SIZE
 
@@ -19,28 +20,30 @@ class PushingController(object):
     You will just need to implement the dynamics and tune the hyperparameters and cost functions.
     """
 
-    def __init__(self, env, model, cost_function, num_samples=100, horizon=10):
+    def __init__(self, env, model, cost_function, num_samples=100, horizon=10, device = 'cpu'):
         self.env = env
         self.model = model
         self.target_state = None
         # MPPI Hyperparameters:
         # --- You may need to tune them
-        state_dim = env.observation_space.shape[0]
+        self.state_dim = env.observation_space.shape[0]
         u_min = torch.from_numpy(env.action_space.low)
         u_max = torch.from_numpy(env.action_space.high)
         noise_sigma = 0.5 * torch.eye(env.action_space.shape[0])
         lambda_value = 0.01
+        self.device = device
         # ---
         from controller.mppi import MPPI
         self.mppi = MPPI(self._compute_dynamics,
                          cost_function,
-                         nx=state_dim,
+                         nx=self.state_dim,
                          num_samples=num_samples,
                          horizon=horizon,
                          noise_sigma=noise_sigma,
                          lambda_=lambda_value,
                          u_min=u_min,
-                         u_max=u_max)
+                         u_max=u_max,
+                         device= device)
 
     def _compute_dynamics(self, state, action):
         """
@@ -51,8 +54,14 @@ class PushingController(object):
         """
         next_state = None
         # --- Your code here
-        next_state = self.model(state, action)
-        print(next_state.device())
+        if isinstance(self.model, NeuralODE):
+            state_action = torch.cat((state, action), dim=1) # (B, 6)
+            t = torch.arange(11).float().to(self.device) # (10, )
+            next_state = self.model(state_action, t)
+            next_state = next_state[1]
+        else: 
+            next_state = self.model(state, action)
+        # print("pushing controller device" ,next_state.device)
 
         # ---
         return next_state
@@ -74,7 +83,7 @@ class PushingController(object):
         # ---
         action_tensor = self.mppi.command(state_tensor)
         # --- Your code here
-        action = action_tensor.detach().numpy()
+        action = action_tensor.detach().cpu().numpy()
 
         # ---
         return action

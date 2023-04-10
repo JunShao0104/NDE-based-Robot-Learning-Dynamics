@@ -9,10 +9,11 @@ class AbsoluteDynamicsModel(nn.Module):
     Model the absolute dynamics x_{t+1} = f(x_{t},a_{t})
     """
 
-    def __init__(self, state_dim, action_dim):
+    def __init__(self, state_dim, action_dim, device = 'cpu'):
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.device = device
         # --- Your code here
         self.linear1 = nn.Linear(state_dim+action_dim, 100)
         self.relu1 = nn.ReLU()
@@ -31,6 +32,8 @@ class AbsoluteDynamicsModel(nn.Module):
         """
         next_state = None
         # --- Your code here
+        state = state.to(self.device)
+        action = action.to(self.device)
         state_action = torch.cat((state, action), dim=1)
         next_state = self.linear1(state_action)
         next_state = self.relu1(next_state)

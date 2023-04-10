@@ -39,7 +39,10 @@ def obstacle_avoidance_pushing():
     # fig = plt.figure(figsize=(8,8))
     # hfig = display(fig, display_id=True)
     # visualizer = NotebookVisualizer(fig=fig, hfig=hfig)
-
+    if(torch.cuda.is_available()):
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cpu")
     # GIF Visualizer
     visualizer = GIFVisualizer()
 
@@ -47,25 +50,26 @@ def obstacle_avoidance_pushing():
     env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5)
 
     # Load the pushing dynamics model
-    pushing_mpoly_2_dynamics_model = mPoly_2_DynamicsModel(3,3)
+    pushing_mpoly_2_dynamics_model = mPoly_2_DynamicsModel(3,3,DEVICE).to(DEVICE)
     mpoly2_model_path = os.path.join(ckpt_path, 'pushing_mpoly_2_dynamics_model.pt')
     pushing_mpoly_2_dynamics_model.load_state_dict(torch.load(mpoly2_model_path))
 
     controller = PushingController(env, pushing_mpoly_2_dynamics_model,
-                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
+                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20, device=DEVICE)
     env.reset()
 
     state_0 = env.reset()
     state = state_0
 
     num_steps_max = 20
-
+    cur_step = 0
     for i in range(num_steps_max):
+        cur_step = i
         action = controller.control(state)
         state, reward, done, _ = env.step(action)
         if done:
             break
-
+    print("total num of steps: ", cur_step)
             
     # Evaluate if goal is reached
     end_state = env.get_state()

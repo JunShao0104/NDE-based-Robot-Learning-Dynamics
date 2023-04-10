@@ -64,7 +64,8 @@ def train():
     else:
         DEVICE = torch.device("cpu")
     # Model
-    pushing_absolute_dynamics_model = AbsoluteDynamicsModel(3, 3).to(DEVICE)
+    pushing_absolute_dynamics_model = AbsoluteDynamicsModel(3, 3, DEVICE).to(DEVICE)
+    print("Currently using device: ", DEVICE)
 
     # Data loader
     train_loader, val_loader = process_data_single_step(collected_data) # batchsize default to be 500

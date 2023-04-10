@@ -10,10 +10,11 @@ class RKNN_2_DynamicsModel(nn.Module):
   Model the dynamics using RKNN-2-order structures
   s_{t+1} = s_{t} + 1 / 2 * (f(s_{t}) + f(s_{t} + f(s_{t})))
   """
-  def __init__(self, state_dim, action_dim):
+  def __init__(self, state_dim, action_dim, device = 'cpu'):
     super().__init__()
     self.state_dim = state_dim
     self.action_dim = action_dim
+    self.device = device
     self.f = nn.Sequential(
             nn.Linear(state_dim+action_dim, 100), # input layer
             nn.ReLU(),
@@ -36,6 +37,8 @@ class RKNN_2_DynamicsModel(nn.Module):
       :return: next_state: torch tensor of shape (..., state_dim)
       """
       next_state = None
+      state = state.to(self.device)
+      action = action.to(self.device)
       state_action_input = torch.cat((state, action), dim=1)
       K1 = self.f(state_action_input)
       K1_action = torch.cat((K1, action), dim=1)
