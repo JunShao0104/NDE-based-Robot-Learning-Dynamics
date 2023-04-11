@@ -55,10 +55,12 @@ class PushingController(object):
         next_state = None
         # --- Your code here
         # if isinstance(self.model, NeuralODE):
+        ode_t = 3
+        sample_rate = 1/(ode_t-1)
         state_action = torch.cat((state, action), dim=1) # (B, 6)
-        t = torch.arange(3).float().to(self.device) # (10, )
-        next_state = self.model(state,action, t)
-        # next_state = next_state[1]
+        t = torch.arange(0,1+sample_rate,sample_rate).float().to(self.device) # (10, )
+        next_state = self.model(state_action, t)
+        next_state = next_state[ode_t-1]
         # else: 
         #     next_state = self.model(state, action)
         # print("pushing controller device" ,next_state.device)

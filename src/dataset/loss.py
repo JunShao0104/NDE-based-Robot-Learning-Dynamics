@@ -126,3 +126,43 @@ class MultiStepLoss(nn.Module):
 
         # ---
         return multi_step_loss
+
+class ODEMultiStepLoss(nn.Module):
+
+    def __init__(self, loss_fn, discount=0.99, device = 'cpu'):
+        super().__init__()
+        self.loss = loss_fn
+        self.discount = discount
+        self.device = device
+
+    def forward(self, model, state, actions, target_states, t):
+        """
+        Compute the multi-step loss resultant of multi-querying the model from (state, action) and comparing the predictions with targets.
+        """
+        multi_step_loss = None
+        # --- Your code here
+        # state: (batchsize, state_size)
+        # actions: (batchsize, num_steps, action_size)
+        # target_states: (batchsize, num_steps, state_size)
+        # t : (batchsize, num_steps*(ode_t-1)+1)
+        target_states = target_states.to(self.device)
+        t = t.to(self.device)
+        multi_step_loss = 0.0
+        num_steps =  int(actions.shape[1])
+        current_state = state
+        discount = 1.0
+        # t samples per step
+        ode_t = int((t.shape[1]-1) / num_steps+1)
+        for i in range(num_steps):
+        #   print(current_state.shape, actions[:, i, :].shape)
+          state_action = torch.cat((current_state, actions[:, i, :]), dim=1)
+        #   print(t.shape) # B , num_steps*(ode_t-1)+1
+          pred_state = model(state_action, t[i]) # (T*ode_t, B, 3)
+          # compare next (ode_t) sample with target_sates
+          single_step_loss = discount * self.loss(pred_state[-1], target_states[:, i, :])
+          multi_step_loss += single_step_loss
+          current_state = pred_state[-1]
+          discount *= self.discount
+
+        # ---
+        return multi_step_loss

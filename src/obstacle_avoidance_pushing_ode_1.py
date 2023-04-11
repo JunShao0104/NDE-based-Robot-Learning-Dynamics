@@ -20,7 +20,7 @@ from model.polynet_dynamics_model import Poly_2_DynamicsModel
 from model.polynet_dynamics_model import mPoly_2_DynamicsModel
 from model.polynet_dynamics_model import way_2_DynamicsModel
 from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
-from model.neural_ode_model_1 import NeuralODE
+from model.neural_ode_model_1 import NeuralODE_1
 
 # Cost function and pushing controller
 from controller.pushing_controller import PushingController
@@ -49,8 +49,8 @@ def obstacle_avoidance_pushing_ode():
     env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5)
 
     # Load the pushing dynamics model
-    NeuralODE_model = NeuralODE(3,3,DEVICE).to(DEVICE)
-    ode_pth_path = os.path.join(ckpt_path, 'pushing_absolute_dynamics_model.pt')
+    NeuralODE_model = NeuralODE_1(3,3,DEVICE).to(DEVICE)
+    ode_pth_path = os.path.join(ckpt_path, 'ODE_multistep_dynamic_model.pt')
     NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
 
     controller = PushingController(env, NeuralODE_model,
@@ -84,7 +84,7 @@ def obstacle_avoidance_pushing_ode():
 
     # Evaluate state
     # plt.close(fig)
-    name = 'ode_obs_avoid_visual_singe_step_T_3_collsfac_110.gif'
+    name = 'ode_obs_mult_step_T_4_collsfac_110.gif'
     Image(filename=visualizer.get_gif(given_name=name))
     print("Gif has been writted to: ", name)
 

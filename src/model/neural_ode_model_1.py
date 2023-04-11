@@ -73,3 +73,31 @@ class NeuralODE(nn.Module):
     #   next_state = next_state[0]
 
       return next_state
+  
+# NeuralODE_multi step
+class NeuralODE_1(nn.Module):
+  def __init__(self, state_dim, action_dim, device = 'cpu'):
+    super().__init__()
+    self.device = device
+    self.odefunc = ODEFunc(state_dim).to(device)
+    # self.odefunc.load_state_dict(torch.load(ode_pth_path))
+    self.projnn = ProjectionNN(state_dim, action_dim).to(device)
+    # self.projnn.load_state_dict(torch.load(proj_pth_path))
+
+  def forward(self, state_action, T):
+      """
+      Compute next_state resultant of applying the provided action to provided state
+      :param state: torch tensor of shape (..., state_dim) (B, 3)
+      :param action: torch tensor of shape (..., action_dim) (B, 3)
+      :return: next_state: torch tensor of shape (..., state_dim) (B, 3)
+      """
+      next_state_ode = None
+      state_action= state_action.to(self.device)
+      encoder = self.projnn(state_action)
+      next_state_ode= odeint(self.odefunc, encoder, T) # (T, B, 3)
+    #   state_action = torch.cat((next_state_ode[-1], action), dim=1)
+    #   next_state =  state + self.projnn(state_action) # (10, B, 3)
+    #   print(next_state.shape)
+    #   next_state = next_state[0]
+
+      return next_state_ode
