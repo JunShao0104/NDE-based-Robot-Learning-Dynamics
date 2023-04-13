@@ -20,7 +20,7 @@ from model.polynet_dynamics_model import Poly_2_DynamicsModel
 from model.polynet_dynamics_model import mPoly_2_DynamicsModel
 from model.polynet_dynamics_model import way_2_DynamicsModel
 from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
-from model.nerual_ode_model import NeuralODE
+from model.neural_ode_model import NeuralODE
 
 # Cost function and pushing controller
 from controller.pushing_controller import PushingController
@@ -43,21 +43,23 @@ def obstacle_avoidance_pushing_ode():
     visualizer = GIFVisualizer()
 
     # set up controller and environment
-    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5)
+    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=2)
 
     # Load the pushing dynamics model
-    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc.pt')
-    proj_pth_path = os.path.join(ckpt_path, 'ProjNN.pt')
-    NeuralODE_model = NeuralODE(ode_pth_path, proj_pth_path)
+    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step.pt')
+    proj_pth_path = os.path.join(ckpt_path, 'ProjNN_single_step.pt')
+    state_dim = 3
+    action_dim = 3
+    NeuralODE_model = NeuralODE(ode_pth_path, proj_pth_path, state_dim, action_dim)
 
     controller = PushingController(env, NeuralODE_model,
-                                obstacle_avoidance_pushing_cost_function, num_samples=500, horizon=10)
+                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
     env.reset()
 
     state_0 = env.reset()
     state = state_0
 
-    num_steps_max = 30
+    num_steps_max = 20
 
     for i in range(num_steps_max):
         action = controller.control(state)

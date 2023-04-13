@@ -28,7 +28,7 @@ from controller.pushing_cost import free_pushing_cost_function, collision_detect
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
 # pth path
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 def obstacle_avoidance_pushing():
     # Control on an obstacle free environment

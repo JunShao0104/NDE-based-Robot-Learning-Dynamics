@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, random_split
 from dataset.dynamics_dataset import SingleStepDynamicsDataset, MultiStepDynamicsDataset
+from dataset.dynamics_dataset import ContinuousDynamicsDataset_SingleStep
 
 def collect_data_random(env, num_trajectories=1000, trajectory_length=10):
     """
@@ -273,6 +274,44 @@ def process_data_continuous_batch_step(collected_data, T=5):
         if batch_y is None:
             batch_y = state_action_T.unsqueeze(1) # (T, 1, S+A)
         else:
+            print(batch_y.shape)
+            print(state_action_T.unsqueeze(1).shape)
             batch_y = torch.cat((batch_y, state_action_T.unsqueeze(1)), dim=1) # (T, M, S+A)
 
     return batch_y0, batch_t, batch_y
+
+
+def process_data_single_step_continuous(collected_data, batch_size=500):
+    """
+    Process the collected data and returns a DataLoader for train and one for validation.
+    The data provided is a list of trajectories (like collect_data_random output).
+    Each DataLoader must load dictionary as {'state_action': concat(x_t, u_t),
+     'next_state': x_{t+1}
+    }
+    where:
+     x_t: torch.float32 tensor of shape (batch_size, state_size)
+     u_t: torch.float32 tensor of shape (batch_size, action_size)
+     x_{t+1}: torch.float32 tensor of shape (batch_size, state_size)
+
+    The data should be split in a 80-20 training-validation split.
+    :param collected_data:
+    :param batch_size: <int> size of the loaded batch.
+    :return:
+
+    Hints:
+     - Pytorch provides data tools for you such as Dataset and DataLoader and random_split
+     - You should implement SingleStepDynamicsDataset below.
+        This class extends pytorch Dataset class to have a custom data format.
+    """
+    train_loader = None
+    val_loader = None
+    # --- Your code here
+    # collected_data: 100
+    entire_dataset = ContinuousDynamicsDataset_SingleStep(collected_data) # 1000
+    len_train_dataset = int(len(entire_dataset)*0.8)
+    len_val_dataset = len(entire_dataset) - len_train_dataset
+    train_dataset, val_dataset = random_split(dataset=entire_dataset, lengths=[len_train_dataset, len_val_dataset])
+    train_loader = DataLoader(train_dataset, batch_size=batch_size)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size)
+    # ---
+    return train_loader, val_loader

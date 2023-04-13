@@ -29,10 +29,10 @@ from dataset.loss import SE2PoseLoss
 from dataset.loss import MultiStepLoss
 
 # pth path:
-ckpt_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
 
 # Load the collected data:
-data_path = '/home/zlj/Documents/ROB498/project/code/NDE-based-Robot-Learning-Dynamics/data'
+data_path = '/mnt/NDE-based-Robot-Learning-Dynamics/data'
 collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
 
 
