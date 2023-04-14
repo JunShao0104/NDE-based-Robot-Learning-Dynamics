@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, random_split
 from dataset.dynamics_dataset import SingleStepDynamicsDataset, MultiStepDynamicsDataset
 from dataset.dynamics_dataset import ContinuousDynamicsDataset_SingleStep
+from dataset.dynamics_dataset import SingleStepDynamicsDataset_FK, MultiStepDynamicsDataset_FK
 
 def collect_data_random(env, num_trajectories=1000, trajectory_length=10):
     """
@@ -313,5 +314,79 @@ def process_data_single_step_continuous(collected_data, batch_size=500):
     train_dataset, val_dataset = random_split(dataset=entire_dataset, lengths=[len_train_dataset, len_val_dataset])
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
+    # ---
+    return train_loader, val_loader
+
+
+def process_data_single_step_FK(collected_data, batch_size=1000):
+    """
+    Process the collected data and returns a DataLoader for train and one for validation.
+    The data provided is a list of trajectories (like collect_data_random output).
+    Each DataLoader must load dictionary as {'state': x_t,
+     'action': u_t,
+     'next_state': x_{t+1},
+    }
+    where:
+     x_t: torch.float32 tensor of shape (batch_size, state_size)
+     u_t: torch.float32 tensor of shape (batch_size, action_size)
+     x_{t+1}: torch.float32 tensor of shape (batch_size, state_size)
+
+    The data should be split in a 80-20 training-validation split.
+    :param collected_data:
+    :param batch_size: <int> size of the loaded batch.
+    :return:
+
+    Hints:
+     - Pytorch provides data tools for you such as Dataset and DataLoader and random_split
+     - You should implement SingleStepDynamicsDataset below.
+        This class extends pytorch Dataset class to have a custom data format.
+    """
+    train_loader = None
+    val_loader = None
+    # --- Your code here
+    entire_dataset = SingleStepDynamicsDataset_FK(collected_data)
+    len_train_dataset = int(len(entire_dataset)*0.8)
+    len_val_dataset = len(entire_dataset) - len_train_dataset
+    train_dataset, val_dataset = random_split(dataset=entire_dataset, lengths=[len_train_dataset, len_val_dataset])
+    train_loader = DataLoader(train_dataset, batch_size=batch_size)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size)
+    # ---
+    return train_loader, val_loader
+
+
+def process_data_multiple_step_FK(collected_data, batch_size=1000, num_steps=4):
+    """
+    Process the collected data and returns a DataLoader for train and one for validation.
+    The data provided is a list of trajectories (like collect_data_random output).
+    Each DataLoader must load dictionary as
+    {'state': x_t,
+     'action': u_t, ..., u_{t+num_steps-1},
+     'next_state': x_{t+1}, ... , x_{t+num_steps}
+    }
+    where:
+     state: torch.float32 tensor of shape (batch_size, state_size)
+     next_state: torch.float32 tensor of shape (batch_size, num_steps, action_size)
+     action: torch.float32 tensor of shape (batch_size, num_steps, state_size)
+
+    Each DataLoader must load dictionary dat
+    The data should be split in a 80-20 training-validation split.
+    :param collected_data:
+    :param batch_size: <int> size of the loaded batch.
+    :param num_steps: <int> number of steps to load the multistep data.
+    :return:
+
+    Hints:
+     - Pytorch provides data tools for you such as Dataset and DataLoader and random_split
+     - You should implement MultiStepDynamicsDataset below.
+        This class extends pytorch Dataset class to have a custom data format.
+    """
+    train_loader = None
+    val_loader = None
+    # --- Your code here
+    entire_dataset = MultiStepDynamicsDataset_FK(collected_data, num_steps, trajectory_num=10)
+    train_dataset, val_dataset = random_split(dataset=entire_dataset, lengths=[0.8, 0.2])
+    train_loader = DataLoader(train_dataset, batch_size=batch_size)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size)
+
     # ---
     return train_loader, val_loader
