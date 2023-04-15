@@ -121,7 +121,7 @@ def train_multistep():
     ode_model = NeuralODE(state_dim, action_dim).to(device)
 
     # Data loader
-    train_loader, val_loader = process_data_multiple_step(collected_data) # batchsize default to be 500
+    train_loader, val_loader = process_data_multiple_step(collected_data, batch_size=1000) # batchsize default to be 500
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
@@ -129,10 +129,10 @@ def train_multistep():
 
     # training process
     lr = 1e-5
-    num_epochs = 20000
+    num_epochs = 30000
 
     # optimizer
-    optimizer = torch.optim.Adam(ode_model.parameters(), lr = lr, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(ode_model.parameters(), lr = lr, weight_decay=1e-6)
 
     # pbar = tqdm(range(num_epochs))
     train_losses = [] # record the history of training loss
@@ -159,7 +159,7 @@ def train_multistep():
 if __name__ == "__main__":
 
     # Train single step
-    train_singlestep()
+    # train_singlestep()
 
     # Train multi step
-    # train_multistep()
+    train_multistep()
