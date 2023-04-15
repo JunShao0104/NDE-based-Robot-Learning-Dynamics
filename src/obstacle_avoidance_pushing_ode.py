@@ -29,16 +29,9 @@ from controller.pushing_cost import free_pushing_cost_function, collision_detect
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
 # pth path
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous'
 
-def obstacle_avoidance_pushing_ode():
-    # Control on an obstacle free environment
-
-    # Notebook Visualizer
-    # fig = plt.figure(figsize=(8,8))
-    # hfig = display(fig, display_id=True)
-    # visualizer = NotebookVisualizer(fig=fig, hfig=hfig)
-
+def obstacle_avoidance_pushing_ode_single_step():
     # GIF Visualizer
     visualizer = GIFVisualizer()
 
@@ -47,27 +40,26 @@ def obstacle_avoidance_pushing_ode():
 
     # Load the pushing dynamics model
     ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step.pt')
-    proj_pth_path = os.path.join(ckpt_path, 'ProjNN_single_step.pt')
     state_dim = 3
     action_dim = 3
-    NeuralODE_model = NeuralODE(ode_pth_path, proj_pth_path, state_dim, action_dim)
+    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim)
+    NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
 
     controller = PushingController(env, NeuralODE_model,
-                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
+                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=30)
     env.reset()
 
     state_0 = env.reset()
     state = state_0
 
-    num_steps_max = 20
+    num_steps_max = 100
 
     for i in range(num_steps_max):
         action = controller.control(state)
         state, reward, done, _ = env.step(action)
         if done:
             break
-
-            
+    
     # Evaluate if goal is reached
     end_state = env.get_state()
     target_state = TARGET_POSE_OBSTACLES
@@ -79,8 +71,9 @@ def obstacle_avoidance_pushing_ode():
             
     # Evaluate state
     # plt.close(fig)
-    Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_ode.gif'))
+    Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_ode_single_step.gif'))
 
 
 if __name__ == "__main__":
-    obstacle_avoidance_pushing_ode()
+    # single step ode model
+    obstacle_avoidance_pushing_ode_single_step()

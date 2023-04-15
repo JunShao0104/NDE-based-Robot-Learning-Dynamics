@@ -6,17 +6,38 @@ from torch.utils.data import Dataset, DataLoader, random_split
 import sys
 sys.path.append("..")
 
-from neural_ode_learning import ODEFunc, ProjectionNN
 from torchdiffeq import odeint_adjoint as odeint
+
+# func
+class ODEFunc(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ODEFunc, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.net = nn.Sequential(
+            nn.Linear(in_channels, 100),
+            nn.Tanh(),
+            nn.Linear(100, out_channels)
+        )
+
+        for m in self.net.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, mean=0, std=0.1)
+                nn.init.constant_(m.bias, val=0)
+    
+    def forward(self, t, y):
+        pred_y = self.net(y)
+
+        return pred_y
+
 
 # NeuralODE
 class NeuralODE(nn.Module):
-  def __init__(self, ode_pth_path, proj_pth_path, state_dim, action_dim):
+  def __init__(self, state_dim=3, action_dim=3):
     super().__init__()
+    self.state_dim = state_dim
+    self.action_dim = action_dim
     self.odefunc = ODEFunc(state_dim+action_dim, state_dim+action_dim)
-    self.odefunc.load_state_dict(torch.load(ode_pth_path))
-    self.projnn = ProjectionNN(state_dim+action_dim, state_dim)
-    self.projnn.load_state_dict(torch.load(proj_pth_path))
 
   def forward(self, state, action):
       """
@@ -28,14 +49,8 @@ class NeuralODE(nn.Module):
       next_state = None
       state_action = torch.cat((state, action), dim=1) # (B, 6)
       t = torch.arange(2).float() # (2, )
-
-      # odeint
-      # next_state_action = odeint(self.odefunc, state_action, t) # (2, B, 6)
-      # next_state = self.projnn(next_state_action.reshape(-1, next_state_action.shape[2])).reshape(t.shape[0], state.shape[0], -1) # (2, B, 3)
-      # next_state = next_state[1, :, :] # (B, 3)
-
-      # simply func addition
-      next_state_action = state_action + self.odefunc(t, state_action) * (t[1] - t[0])
-      next_state = self.projnn(next_state_action)
+      # Compute
+      next_state_action = odeint(self.odefunc, state_action, t) # (2, B, 6)
+      next_state = next_state_action[-1, :, :self.state_dim] # (B, 3)
 
       return next_state

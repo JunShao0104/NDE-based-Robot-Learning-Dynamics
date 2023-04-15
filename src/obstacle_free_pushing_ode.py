@@ -29,7 +29,7 @@ from controller.pushing_cost import free_pushing_cost_function, collision_detect
 from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
 # pth path
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
+ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous'
 
 def obstacle_free_pushing_ode():
     # Control on an obstacle free environment
@@ -46,14 +46,14 @@ def obstacle_free_pushing_ode():
     env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  camera_heigh=800, camera_width=800, render_every_n_steps=5)
 
     # Load the pushing dynamics model
-    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step.pt')
-    proj_pth_path = os.path.join(ckpt_path, 'ProjNN_single_step.pt')
+    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step_no_proj.pt')
+    # proj_pth_path = os.path.join(ckpt_path, 'ProjNN_single_step.pt')
     state_dim = 3
     action_dim = 3
-    NeuralODE_model = NeuralODE(ode_pth_path, proj_pth_path, state_dim, action_dim)
+    NeuralODE_model = NeuralODE(ode_pth_path=ode_pth_path, proj_pth_path=None, state_dim=state_dim, action_dim=action_dim)
 
     controller = PushingController(env, NeuralODE_model,
-                                free_pushing_cost_function, num_samples=100, horizon=10)
+                                free_pushing_cost_function, num_samples=100, horizon=20)
     env.reset()
 
     state_0 = env.reset()
@@ -70,9 +70,9 @@ def obstacle_free_pushing_ode():
             
     # Evaluate if goal is reached
     end_state = env.get_state()
-    print("end_state: ", end_state)
+    # print("end_state: ", end_state)
     target_state = TARGET_POSE_OBSTACLES
-    print("target_state: ", target_state)
+    # print("target_state: ", target_state)
     goal_distance = np.linalg.norm(end_state[:2]-target_state[:2]) # evaluate only position, not orientation
     goal_reached = goal_distance < BOX_SIZE
 

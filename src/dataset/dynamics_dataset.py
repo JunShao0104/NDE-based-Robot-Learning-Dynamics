@@ -119,64 +119,6 @@ class MultiStepDynamicsDataset(Dataset):
         return sample
 
 
-class ContinuousDynamicsDataset_SingleStep(Dataset):
-    """
-    Dataset containing continuous dynamics data.
-    For NeuralODE training
-
-    Each data sample is a dictionary containing (state_action, next_state_action) in the form:
-    {'state_action': concat(x_t, u_t)
-     'next_state': x_t+1
-    }
-    """
-
-    def __init__(self, collected_data):
-        self.data = collected_data
-        self.trajectory_length = self.data[0]['actions'].shape[0] # actions number
-
-    def __len__(self):
-        return len(self.data) * self.trajectory_length
-
-    def __iter__(self):
-        for i in range(self.__len__()):
-            yield self.__getitem__(i)
-
-    def __getitem__(self, item):
-        """
-        Return the data sample corresponding to the index <item>.
-        :param item: <int> index of the data sample to produce.
-            It can take any value in range 0 to self.__len__().
-        :return: data sample corresponding to encoded as a dictionary with keys (state_action, next_state).
-        The class description has more details about the format of this data sample.
-        """
-        sample = {
-            'state_action': None,
-            'next_state': None,
-        }
-        # Implementation
-        trajectory_idx = item // self.trajectory_length
-        action_idx = item % self.trajectory_length
-        trajectory = self.data[trajectory_idx]
-        if type(trajectory['actions']) is np.ndarray:
-            # Current state and action
-            action = torch.from_numpy(trajectory['actions'][action_idx])
-            state = torch.from_numpy(trajectory['states'][action_idx])
-            state_action = torch.cat((state, action), dim=0)
-            # Next state
-            next_state = torch.from_numpy(trajectory['states'][action_idx+1])
-        else:
-            # Current state and action
-            action = trajectory['actions'][action_idx]
-            state = trajectory['states'][action_idx]
-            state_action = torch.cat((state, action), dim=0)
-            # Next state
-            next_state = trajectory['states'][action_idx+1]
-        sample['state_action'] = state_action.float()
-        sample['next_state'] = next_state.float()
-        # ---
-        return sample
-
-
 class SingleStepDynamicsDataset_FK(Dataset):
     """
     Each data sample is a dictionary containing (x_t, u_t, x_{t+1}) in the form:
