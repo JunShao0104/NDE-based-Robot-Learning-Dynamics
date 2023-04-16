@@ -74,6 +74,52 @@ def obstacle_avoidance_pushing_ode_single_step():
     Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_ode_single_step.gif'))
 
 
+def obstacle_avoidance_pushing_ode_multi_step():
+    # GIF Visualizer
+    visualizer = GIFVisualizer()
+
+    # set up controller and environment
+    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=2)
+
+    # Load the pushing dynamics model
+    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_multi_step.pt')
+    state_dim = 3
+    action_dim = 3
+    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim)
+    NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
+
+    controller = PushingController(env, NeuralODE_model,
+                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=30)
+    env.reset()
+
+    state_0 = env.reset()
+    state = state_0
+
+    num_steps_max = 100
+
+    for i in range(num_steps_max):
+        action = controller.control(state)
+        state, reward, done, _ = env.step(action)
+        if done:
+            break
+    
+    # Evaluate if goal is reached
+    end_state = env.get_state()
+    target_state = TARGET_POSE_OBSTACLES
+    goal_distance = np.linalg.norm(end_state[:2]-target_state[:2]) # evaluate only position, not orientation
+    goal_reached = goal_distance < BOX_SIZE
+
+    print(f'GOAL REACHED: {goal_reached}')
+            
+            
+    # Evaluate state
+    # plt.close(fig)
+    Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_ode_multi_step.gif'))
+
+
 if __name__ == "__main__":
     # single step ode model
-    obstacle_avoidance_pushing_ode_single_step()
+    # obstacle_avoidance_pushing_ode_single_step()
+
+    # multi step ode model
+    obstacle_avoidance_pushing_ode_multi_step()
