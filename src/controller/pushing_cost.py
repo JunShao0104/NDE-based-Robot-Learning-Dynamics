@@ -61,7 +61,7 @@ def collision_detection(state):
     """
     obstacle_centre = OBSTACLE_CENTRE_TENSOR.to(state.device)  # torch tensor of shape (2,) consisting of obstacle centre (x, y)
     obstacle_dims = 2 * OBSTACLE_HALFDIMS_TENSOR.to(state.device)  # torch tensor of shape (2,) consisting of (w_obs, l_obs)
-    box_size = BOX_SIZE  # scalar for parameter w
+    box_size = 2*BOX_SIZE  # scalar for parameter w
     in_collision = None
     # --- Your code here
     # obstacle_centre = torch.unsqueeze(obstacle_centre, 0).repeat(state.shape[0], 1) # (B, 2)
@@ -119,7 +119,7 @@ def obstacle_avoidance_pushing_cost_function(state, action):
     cost = torch.diagonal(cost, 0) # (B, )
 
     # Obstacle collision cost
-    in_collision = 110 * collision_detection(state).to(state.device) # (B, )
+    in_collision = 1100 * collision_detection(state).to(state.device) # (B, )
     new_cost = cost
     new_cost += in_collision
     # print(torch.sum(new_cost-cost))

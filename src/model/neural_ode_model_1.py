@@ -45,7 +45,38 @@ class ProjectionNN(nn.Module):
         state = self.proj(state_action)
 
         return state
-    
+
+class Encoder(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(Encoder, self).__init__()
+        self.proj = nn.Sequential(
+            nn.Linear(state_dim+action_dim, 100),
+            nn.ReLU(),
+            nn.Linear(100, 100),
+            nn.ReLU(),
+            nn.Linear(100, state_dim)
+        )
+    def forward(self, state_action):
+        latent_state = self.proj(state_action)
+
+        return latent_state
+  
+class Decoder(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(Decoder, self).__init__()
+        self.proj = nn.Sequential(
+            nn.Linear(state_dim, 100),
+            nn.ReLU(),
+            nn.Linear(100, 100),
+            nn.ReLU(),
+            nn.Linear(100, state_dim)
+        )
+    def forward(self, latent_state):
+        state = self.proj(latent_state)
+
+        return state
+
+
 # NeuralODE
 class NeuralODE(nn.Module):
   def __init__(self, state_dim, action_dim, device = 'cpu'):
@@ -53,7 +84,8 @@ class NeuralODE(nn.Module):
     self.device = device
     self.odefunc = ODEFunc(state_dim).to(device)
     # self.odefunc.load_state_dict(torch.load(ode_pth_path))
-    self.projnn = ProjectionNN(state_dim, action_dim).to(device)
+    self.encoder = Encoder(state_dim, action_dim).to(device)
+    self.decoder = Decoder(state_dim, action_dim).to(device)
     # self.projnn.load_state_dict(torch.load(proj_pth_path))
 
   def forward(self, state, action, T):
@@ -66,9 +98,10 @@ class NeuralODE(nn.Module):
       next_state = None
       state= state.to(self.device)
       action= action.to(self.device)
-      next_state_ode= odeint(self.odefunc, state, T) # (10, B, 3)
-      state_action = torch.cat((next_state_ode[-1], action), dim=1)
-      next_state =  state + self.projnn(state_action) # (10, B, 3)
+      state_action = torch.cat((state, action), dim=1)
+      latent_space = self.encoder(state_action)
+      latent_state_ode= odeint(self.odefunc, latent_space, T) # (10, B, 3)
+      next_state =  self.decoder(latent_state_ode[-1]) # (B, 3)
     #   print(next_state.shape)
     #   next_state = next_state[0]
 

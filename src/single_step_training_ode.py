@@ -26,7 +26,7 @@ from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
 
 # Loss
 from dataset.loss import SE2PoseLoss
-from dataset.loss import SingleStepLoss
+from dataset.loss import SingleStepLoss, ODESingleStepLoss
 from model.neural_ode_model_1 import NeuralODE
 # pth path:
 ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt'
@@ -72,7 +72,7 @@ def train():
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1, device= DEVICE)
-    pose_loss = SingleStepLoss(pose_loss)
+    pose_loss = ODESingleStepLoss(pose_loss, device= DEVICE)
 
     # training process
     lr = 1e-5
@@ -100,7 +100,7 @@ def train():
     
 
     # save model:
-    save_path = os.path.join(ckpt_path, 'pushing_absolute_dynamics_model.pt')
+    save_path = os.path.join(ckpt_path, 'latent_ode_single_step_t_2.pt')
     torch.save(pushing_absolute_dynamics_model.state_dict(), save_path)
 
 

@@ -166,3 +166,24 @@ class ODEMultiStepLoss(nn.Module):
 
         # ---
         return multi_step_loss
+    
+class ODESingleStepLoss(nn.Module):
+
+    def __init__(self, loss_fn, device = 'cpu'):
+        super().__init__()
+        self.loss = loss_fn
+        self.device = device
+
+    def forward(self, model, state, action, target_state):
+        """
+        Compute the single step loss resultant of querying model with (state, action) and comparing the predictions with target_state.
+        """
+        single_step_loss = None
+        # --- Your code here
+        target_state = target_state.to(self.device)
+        t = torch.arange(2).float().to(self.device)
+        pred_state = model(state, action,t)
+        single_step_loss = self.loss(pred_state, target_state)
+
+        # ---
+        return single_step_loss

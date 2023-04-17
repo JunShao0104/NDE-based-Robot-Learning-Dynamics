@@ -34,7 +34,7 @@ class PushingController(object):
         self.device = device
         # ---
         from controller.mppi import MPPI
-        self.mppi = MPPI(self._compute_dynamics,
+        self.mppi = MPPI(self._compute_dynamics_1,
                          cost_function,
                          nx=self.state_dim,
                          num_samples=num_samples,
@@ -61,6 +61,28 @@ class PushingController(object):
         t = torch.arange(0,1+sample_rate,sample_rate).float().to(self.device) # (10, )
         next_state = self.model(state_action, t)
         next_state = next_state[ode_t-1]
+        # else: 
+        #     next_state = self.model(state, action)
+        # print("pushing controller device" ,next_state.device)
+
+        # ---
+        return next_state
+    
+    #latent_model_t = 2 
+    def _compute_dynamics_1(self, state, action):
+        """
+        Compute next_state using the dynamics model self.model and the provided state and action tensors
+        :param state: torch tensor of shape (B, state_size)
+        :param action: torch tensor of shape (B, action_size)
+        :return: next_state: torch tensor of shape (B, state_size) containing the predicted states from the learned model.
+        """
+        next_state = None
+        # --- Your code here
+        # if isinstance(self.model, NeuralODE):
+        ode_t = 2
+        sample_rate = 1/(ode_t-1)
+        t = torch.arange(2).float().to(self.device) # (10, )
+        next_state = self.model(state, action, t)
         # else: 
         #     next_state = self.model(state, action)
         # print("pushing controller device" ,next_state.device)
