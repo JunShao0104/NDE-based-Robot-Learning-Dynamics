@@ -17,6 +17,11 @@ bash install.sh
 ```
 
 ## 1 Robot Learning Dynamics for Panda Planar Pushing
+
+### REFORMATED instruction
+python train.py
+
+
 ### 1.1 Discrete ODE Learning V.S. Continuous ODE Learning
 Compare the prediction performance of the discrete ODE learning methods and the continuous ODE learning method.
 
