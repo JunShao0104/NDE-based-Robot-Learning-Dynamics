@@ -55,7 +55,7 @@ def train_step(model, train_loader, optimizer, loss_func) -> float:
     train_loss = 0.
     for batch_idx, sample_data in enumerate(train_loader):
         optimizer.zero_grad()
-        loss = loss_func(model, sample_data['state'], sample_data['action'], sample_data['next_state'])
+        loss = loss_func(model, sample_data['state'].to(device), sample_data['action'].to(device), sample_data['next_state'].to(device))
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
@@ -66,7 +66,7 @@ def train_step(model, train_loader, optimizer, loss_func) -> float:
 def val_step(model, val_loader, loss_func) -> float:
     val_loss = 0.
     for batch_idx, sample_data in enumerate(val_loader):
-        loss = loss_func(model, sample_data['state'], sample_data['action'], sample_data['next_state'])
+        loss = loss_func(model, sample_data['state'].to(device), sample_data['action'].to(device), sample_data['next_state'].to(device))
         val_loss += loss.item()
     return val_loss/len(val_loader)
 
