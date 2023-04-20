@@ -25,7 +25,7 @@ python train.py
 # Pushing with trained weights from ckpts folder
 python push.py
 ```
-# models.yaml has following variables
+### models.yaml has following variables
 - model : options: absolute, mpoly_2, poly_2, residual, RKNN, way_2, ode
 - ODE_solver: options: False, 'rk4' # Can only be set when model = 'ode'; False if default (dopri5); 
 - obstacle : options: True, False # True if pushing with obstacle, False if free pushing
