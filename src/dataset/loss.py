@@ -60,9 +60,10 @@ class SingleStepLoss(nn.Module):
 
 class SingleStepLoss_ode(nn.Module):
 
-    def __init__(self, loss_fn):
+    def __init__(self, loss_fn, method = None):
         super().__init__()
         self.loss = loss_fn
+        self.method = method
 
     def forward(self, model, state, action, target_state):
         """
@@ -75,7 +76,10 @@ class SingleStepLoss_ode(nn.Module):
         batch_y0 = state_action # (M, D)
         batch_y = target_state # (M, S)
         batch_t = torch.arange(T).float()
-        pred_y = odeint(model.odefunc, batch_y0, batch_t) # (T, M, D)
+        if(self.method):
+            pred_y = odeint(model.odefunc, batch_y0, batch_t,method=self.method, options=dict(step_size=0.5))
+        else:
+            pred_y = odeint(model.odefunc, batch_y0, batch_t) # (T, M, D)
         T, M, D = pred_y.shape
         single_step_loss = self.loss(pred_y[-1, :, :state.shape[1]], batch_y)
 

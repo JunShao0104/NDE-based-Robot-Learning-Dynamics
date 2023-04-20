@@ -10,39 +10,34 @@ import matplotlib.pyplot as plt
 from numpngw import write_apng
 from IPython.display import Image
 from tqdm.notebook import tqdm
-from env.panda_pushing_env import PandaPushingEnv
-from utils.visualizers import GIFVisualizer, NotebookVisualizer
+from src.env.panda_pushing_env import PandaPushingEnv
+from src.utils.visualizers import GIFVisualizer, NotebookVisualizer
 
 # Model
-from model.absolute_dynamics_model import AbsoluteDynamicsModel
-from model.residual_dynamics_model import ResidualDynamicsModel
-from model.polynet_dynamics_model import Poly_2_DynamicsModel
-from model.polynet_dynamics_model import mPoly_2_DynamicsModel
-from model.polynet_dynamics_model import way_2_DynamicsModel
-from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
-from model.neural_ode_model import NeuralODE
+from src.model.neural_ode_model import NeuralODE
 
 # Cost function and pushing controller
-from controller.pushing_controller import PushingController
-from controller.pushing_cost import collision_detection
-from controller.pushing_cost import free_pushing_cost_function, collision_detection, obstacle_avoidance_pushing_cost_function
-from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
+from src.controller.pushing_controller import PushingController
+from src.controller.pushing_cost import collision_detection
+from src.controller.pushing_cost import free_pushing_cost_function, collision_detection, obstacle_avoidance_pushing_cost_function
+from src.env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
-# pth path
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous'
 
-def obstacle_avoidance_pushing_ode_single_step():
+def obstacle_avoidance_pushing_ode_single_step(method, path):
     # GIF Visualizer
     visualizer = GIFVisualizer()
 
-    # set up controller and environment
-    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=2)
+    # Path
+    ckpt_path = os.path.join(path,'/ckpt/Panda_pushing/continuous')
 
+    # set up controller and environment
+    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=2, path = path)
+    print("Currenlty using ODE Solver: ", method if method else "dopri5")
     # Load the pushing dynamics model
-    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step.pt')
+    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}.pt'.format(method if method else "dopri5"))
     state_dim = 3
     action_dim = 3
-    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim)
+    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim, method=method)
     NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
 
     controller = PushingController(env, NeuralODE_model,
@@ -74,18 +69,22 @@ def obstacle_avoidance_pushing_ode_single_step():
     Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_ode_single_step.gif'))
 
 
-def obstacle_avoidance_pushing_ode_multi_step():
+def obstacle_avoidance_pushing_ode_multi_step(method, path):
     # GIF Visualizer
     visualizer = GIFVisualizer()
 
+    # Path
+    ckpt_path = os.path.join(path,'/ckpt/Panda_pushing/continuous')
+
     # set up controller and environment
-    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=2)
+    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=2, path = path)
 
     # Load the pushing dynamics model
-    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_multi_step.pt')
+    # ode_pth_path = os.path.join(path, 'ODEFunc_multi_step.pt')
+    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_multi_step_{}.pt'.format(method if method else "dopri5"))
     state_dim = 3
     action_dim = 3
-    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim)
+    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim, method=method)
     NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
 
     controller = PushingController(env, NeuralODE_model,
@@ -117,9 +116,10 @@ def obstacle_avoidance_pushing_ode_multi_step():
     Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_ode_multi_step.gif'))
 
 
-if __name__ == "__main__":
-    # single step ode model
-    # obstacle_avoidance_pushing_ode_single_step()
+# if __name__ == "__main__":
+#     # single step ode model
+#     # obstacle_avoidance_pushing_ode_single_step()
+#     obstacle_avoidance_pushing_ode_single_step(method = 'rk4')
 
     # multi step ode model
-    obstacle_avoidance_pushing_ode_multi_step()
+    # obstacle_avoidance_pushing_ode_multi_step()

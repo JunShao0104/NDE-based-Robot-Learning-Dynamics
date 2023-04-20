@@ -10,46 +10,57 @@ import matplotlib.pyplot as plt
 from numpngw import write_apng
 from IPython.display import Image
 from tqdm.notebook import tqdm
-from env.panda_pushing_env import PandaPushingEnv
-from utils.visualizers import GIFVisualizer, NotebookVisualizer
+from src.env.panda_pushing_env import PandaPushingEnv
+from src.utils.visualizers import GIFVisualizer, NotebookVisualizer
 
 # Model
-from model.absolute_dynamics_model import AbsoluteDynamicsModel
-from model.residual_dynamics_model import ResidualDynamicsModel
-from model.polynet_dynamics_model import Poly_2_DynamicsModel
-from model.polynet_dynamics_model import mPoly_2_DynamicsModel
-from model.polynet_dynamics_model import way_2_DynamicsModel
-from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
+from src.model.absolute_dynamics_model import AbsoluteDynamicsModel
+from src.model.residual_dynamics_model import ResidualDynamicsModel
+from src.model.polynet_dynamics_model import Poly_2_DynamicsModel
+from src.model.polynet_dynamics_model import mPoly_2_DynamicsModel
+from src.model.polynet_dynamics_model import way_2_DynamicsModel
+from src.model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
 
 # Cost function and pushing controller
-from controller.pushing_controller import PushingController
-from controller.pushing_cost import collision_detection
-from controller.pushing_cost import free_pushing_cost_function, collision_detection, obstacle_avoidance_pushing_cost_function
-from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
+from src.controller.pushing_controller import PushingController
+from src.controller.pushing_cost import collision_detection
+from src.controller.pushing_cost import free_pushing_cost_function, collision_detection, obstacle_avoidance_pushing_cost_function
+from src.env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
-# pth path
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt'
 
-def obstacle_avoidance_pushing():
+def obstacle_avoidance_pushing(model, path):
     # Control on an obstacle free environment
+    ckpt_path = (path + '/ckpt/Panda_pushing/discrete/')
 
     # Notebook Visualizer
     # fig = plt.figure(figsize=(8,8))
     # hfig = display(fig, display_id=True)
     # visualizer = NotebookVisualizer(fig=fig, hfig=hfig)
+    if model == 'absolute':
+        pushing_model = AbsoluteDynamicsModel(3, 3)
+    elif model == 'RKNN':
+        pushing_model = RKNN_2_DynamicsModel(3, 3)
+    elif model == 'poly_2':
+        pushing_model = Poly_2_DynamicsModel(3, 3)
+    elif model == 'residual':
+        pushing_model = ResidualDynamicsModel(3, 3)
+    elif model == 'mpoly_2':
+        pushing_model = mPoly_2_DynamicsModel(3, 3)
+    elif model == 'way_2':
+        pushing_model = way_2_DynamicsModel(3, 3)
+    else:
+        print("No model name: ", model, " found, please check the list again. ")
 
     # GIF Visualizer
     visualizer = GIFVisualizer()
-
     # set up controller and environment
-    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5)
+    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5, path = path)
 
     # Load the pushing dynamics model
-    pushing_mpoly_2_dynamics_model = mPoly_2_DynamicsModel(3,3)
-    mpoly2_model_path = os.path.join(ckpt_path, 'pushing_mpoly_2_dynamics_model.pt')
-    pushing_mpoly_2_dynamics_model.load_state_dict(torch.load(mpoly2_model_path))
+    model_path = os.path.join(ckpt_path, 'pushing_{}_dynamics_model.pt'.format(model))
+    pushing_model.load_state_dict(torch.load(model_path))
 
-    controller = PushingController(env, pushing_mpoly_2_dynamics_model,
+    controller = PushingController(env, pushing_model,
                                 obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
     env.reset()
 
@@ -79,5 +90,5 @@ def obstacle_avoidance_pushing():
     Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization.gif'))
 
 
-if __name__ == "__main__":
-    obstacle_avoidance_pushing()
+# if __name__ == "__main__":
+#     obstacle_avoidance_pushing()

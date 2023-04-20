@@ -10,14 +10,11 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 
-
 # get the path to assets
 # hw_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)).split('/HW3')[0], 'HW3')
 # hw_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Change the dir to your own!!
-hw_dir = '/mnt/NDE-based-Robot-Learning-Dynamics/'
-assets_dir = os.path.join(hw_dir, 'assets')
 
 
 BOX_SIZE = 0.1
@@ -31,11 +28,12 @@ OBSTACLE_HALFDIMS = np.array([0.05, 0.25, 0.05])
 class PandaPushingEnv(gym.Env):
 
     def __init__(self, debug=False, visualizer=None, include_obstacle=False, render_non_push_motions=True,
-                 render_every_n_steps=1, camera_heigh=84, camera_width=84):
+                 render_every_n_steps=1, camera_heigh=84, camera_width=84, path = None):
         self.debug = debug
         self.visualizer = visualizer
         self.include_obstacle = include_obstacle
         self.render_every_n_steps = render_every_n_steps
+        self.assets_dir = os.path.join(path, 'assets')
         if debug:
             p.connect(p.GUI)
         else:
@@ -52,9 +50,9 @@ class PandaPushingEnv(gym.Env):
         self.targetUid = None  # Target object
         self.obstacleUid = None  # Obstacle object
 
-        self.object_file_path = os.path.join(assets_dir, "objects/cube/cube.urdf")
-        self.target_file_path = os.path.join(assets_dir, "objects/cube/cube.urdf")
-        self.obstacle_file_path = os.path.join(assets_dir, "objects/obstacle/obstacle.urdf")
+        self.object_file_path = os.path.join(self.assets_dir, "objects/cube/cube.urdf")
+        self.target_file_path = os.path.join(self.assets_dir, "objects/cube/cube.urdf")
+        self.obstacle_file_path = os.path.join(self.assets_dir, "objects/obstacle/obstacle.urdf")
 
         # self.init_panda_joint_state = [-0.028, 0.853, -0.016, -1.547, 0.017, 2.4, 2.305, 0., 0.]
         self.init_panda_joint_state = np.array([0., 0., 0., -np.pi * 0.5, 0., np.pi * 0.5, 0.])
@@ -116,12 +114,12 @@ class PandaPushingEnv(gym.Env):
 
         # Add panda to the scene
         # print(assets_dir)
-        self.pandaUid = p.loadURDF(os.path.join(assets_dir, "franka_panda/panda.urdf"), useFixedBase=True)
+        self.pandaUid = p.loadURDF(os.path.join(self.assets_dir, "franka_panda/panda.urdf"), useFixedBase=True)
         for i in range(len(self.init_panda_joint_state)):
             p.resetJointState(self.pandaUid, i, self.init_panda_joint_state[i])
 
         # Load table
-        self.tableUid = p.loadURDF(os.path.join(assets_dir, "objects/table/table.urdf"), basePosition=[0.5, 0, -0.65])
+        self.tableUid = p.loadURDF(os.path.join(self.assets_dir, "objects/table/table.urdf"), basePosition=[0.5, 0, -0.65])
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 
         # Load objects

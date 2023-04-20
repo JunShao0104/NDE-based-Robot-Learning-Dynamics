@@ -10,27 +10,27 @@ import matplotlib.pyplot as plt
 from numpngw import write_apng
 from IPython.display import Image
 from tqdm.notebook import tqdm
-from env.panda_pushing_env import PandaPushingEnv
+from src.env.panda_pushing_env import PandaPushingEnv
 
 # Process the data
-from dataset.data_preprocessing import process_data_single_step
-from dataset.data_preprocessing import process_data_multiple_step
+from src.dataset.data_preprocessing import process_data_single_step
+from src.dataset.data_preprocessing import process_data_multiple_step
 
 # Loss
-from dataset.loss import SE2PoseLoss, SingleStepLoss_ode, MultiStepLoss_ode
+from src.dataset.loss import SE2PoseLoss, SingleStepLoss_ode, MultiStepLoss_ode
 
 # NeuralODE
 from torchdiffeq import odeint_adjoint as odeint
 
 # Model
-from model.neural_ode_model import NeuralODE
+from src.model.neural_ode_model import NeuralODE
 
 # pth path:
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous'
+# ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous'
 
 # Load the collected data:
-data_path = '/mnt/NDE-based-Robot-Learning-Dynamics/data/Panda_pushing'
-collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
+# data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data/Panda_pushing'
+# collected_data = np.load(os.path.join(data_path, 'collected_data.npy'), allow_pickle=True)
 
 # Device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -64,20 +64,24 @@ def val_step(model, val_loader, loss_func) -> float:
 Single Step
 """
 # Train with torch dataset and single step
-def train_singlestep():
+def train_singlestep(method, dataset, path):
     # dimension
     state_dim = 3
     action_dim = 3
 
     # Func
-    ode_model = NeuralODE(state_dim, action_dim).to(device)
+    print("Currenlty using ODE Solver: ", method if method else "dopri5")
+    ode_model = NeuralODE(state_dim, action_dim, method = method).to(device)
+
+    # Path
+    ckpt_path = os.path.join(path,'/ckpt/Panda_pushing/continuous')
 
     # Data loader
-    train_loader, val_loader = process_data_single_step(collected_data) # batchsize default to be 500
+    train_loader, val_loader = process_data_single_step(dataset) # batchsize default to be 500
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
-    pose_loss = SingleStepLoss_ode(pose_loss)
+    pose_loss = SingleStepLoss_ode(pose_loss, method= method)
 
     # training process
     lr = 1e-5
@@ -104,7 +108,7 @@ def train_singlestep():
     
 
     # save model:
-    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_single_step.pt')
+    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}.pt'.format(method if method else "dopri5"))
     torch.save(ode_model.state_dict(), ode_model_save_path)
 
 
@@ -112,7 +116,7 @@ def train_singlestep():
 Multi Step
 """
 # Train with torch dataset and multi step
-def train_multistep():
+def train_multistep(dataset, path):
     # dimension
     state_dim = 3
     action_dim = 3
@@ -120,8 +124,11 @@ def train_multistep():
     # Func
     ode_model = NeuralODE(state_dim, action_dim).to(device)
 
+    # Path
+    ckpt_path = os.path.join(path,'/ckpt/Panda_pushing/continuous')
+
     # Data loader
-    train_loader, val_loader = process_data_multiple_step(collected_data, batch_size=1000) # batchsize default to be 500
+    train_loader, val_loader = process_data_multiple_step(dataset, batch_size=1000) # batchsize default to be 500
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
@@ -160,6 +167,8 @@ if __name__ == "__main__":
 
     # Train single step
     # train_singlestep()
+    # Train single step Fixed step rk4
+    train_singlestep('rk4')
 
     # Train multi step
-    train_multistep()
+    # train_multistep()

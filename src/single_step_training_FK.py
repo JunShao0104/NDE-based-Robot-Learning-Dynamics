@@ -10,23 +10,23 @@ import matplotlib.pyplot as plt
 from numpngw import write_apng
 from IPython.display import Image
 from tqdm.notebook import tqdm
-from env.panda_pushing_env import PandaPushingEnv
+from src.env.panda_pushing_env import PandaPushingEnv
 
 # Process dataset
-from dataset.data_preprocessing import process_data_single_step_FK
-from dataset.dynamics_dataset import SingleStepDynamicsDataset_FK
+from src.dataset.data_preprocessing import process_data_single_step_FK
+from src.dataset.dynamics_dataset import SingleStepDynamicsDataset_FK
 
 # Model
-from model.absolute_dynamics_model import AbsoluteDynamicsModel
-from model.residual_dynamics_model import ResidualDynamicsModel
-from model.polynet_dynamics_model import Poly_2_DynamicsModel
-from model.polynet_dynamics_model import mPoly_2_DynamicsModel
-from model.polynet_dynamics_model import way_2_DynamicsModel
-from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
+from src.model.absolute_dynamics_model import AbsoluteDynamicsModel
+from src.model.residual_dynamics_model import ResidualDynamicsModel
+from src.model.polynet_dynamics_model import Poly_2_DynamicsModel
+from src.model.polynet_dynamics_model import mPoly_2_DynamicsModel
+from src.model.polynet_dynamics_model import way_2_DynamicsModel
+from src.model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
 
 # Loss
-from dataset.loss import SE2PoseLoss
-from dataset.loss import SingleStepLoss
+from src.dataset.loss import SE2PoseLoss
+from src.dataset.loss import SingleStepLoss
 
 
 """
@@ -34,13 +34,12 @@ Baxter
 """
 # Device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# # pth path:
+# ckpt_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt/FK/Baxter'
 
-# pth path:
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/FK/Baxter'
-
-# Load the collected data:
-data_path = '/mnt/NDE-based-Robot-Learning-Dynamics/data/FK'
-fk_data = torch.from_numpy(np.load(os.path.join(data_path, 'BaxterDirectDynamics.npy'), allow_pickle=True)).to(device)
+# # Load the collected data:
+# data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data/FK'
+# fk_data = torch.from_numpy(np.load(os.path.join(data_path, 'BaxterDirectDynamics.npy'), allow_pickle=True)).to(device)
 
 
 # train step func
@@ -65,13 +64,29 @@ def val_step(model, val_loader, loss_func) -> float:
 
 
 # Training function
-def train():
+def train(model, dataset, path):
     # Model
-    # pushing_absolute_dynamics_model = AbsoluteDynamicsModel(14, 7).to(device)
-    pushing_residual_dynamics_model = ResidualDynamicsModel(14, 7).to(device)
+    # Model
+    if model == 'absolute':
+        pushing_model = AbsoluteDynamicsModel(14, 7)
+    elif model == 'RKNN':
+        pushing_model = RKNN_2_DynamicsModel(14, 7)
+    elif model == 'poly_2':
+        pushing_model = Poly_2_DynamicsModel(14, 7)
+    elif model == 'residual':
+        pushing_model = ResidualDynamicsModel(14, 7)
+    elif model == 'mpoly_2':
+        pushing_model = mPoly_2_DynamicsModel(14, 7)
+    elif model == 'way_2':
+        pushing_model = way_2_DynamicsModel(14, 7)
+    else:
+        print("No model name: ", model, " found, please check the list again. ")
+
+    # Path
+    ckpt_path = os.path.join(path,'/ckpt/FK/Baxter')
 
     # Data loader
-    train_loader, val_loader = process_data_single_step_FK(fk_data) # batchsize default to be 1000
+    train_loader, val_loader = process_data_single_step_FK(dataset) # batchsize default to be 1000
 
     # Loss function
     state_loss = torch.nn.MSELoss()
@@ -83,7 +98,7 @@ def train():
 
     # optimizer
     # optimizer = torch.optim.Adam(pushing_absolute_dynamics_model.parameters(), lr = lr, weight_decay=1e-4)
-    optimizer = torch.optim.Adam(pushing_residual_dynamics_model.parameters(), lr = lr, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(pushing_model.parameters(), lr = lr, weight_decay=1e-5)
 
     train_losses = [] # record the history of training loss
     val_losses = [] # record the history of validation loss
@@ -94,8 +109,8 @@ def train():
         # val_loss_i = val_step(pushing_absolute_dynamics_model, val_loader, state_loss)
 
         # residual model
-        train_loss_i = train_step(pushing_residual_dynamics_model, train_loader, optimizer, state_loss)
-        val_loss_i = val_step(pushing_residual_dynamics_model, val_loader, state_loss)
+        train_loss_i = train_step(pushing_model, train_loader, optimizer, state_loss)
+        val_loss_i = val_step(pushing_model, val_loader, state_loss)
 
         train_losses.append(train_loss_i)
         val_losses.append(val_loss_i)
@@ -113,9 +128,5 @@ def train():
     # torch.save(pushing_absolute_dynamics_model.state_dict(), save_path)
 
     # residual model
-    save_path = os.path.join(ckpt_path, 'pushing_residual_dynamics_model.pt')
-    torch.save(pushing_residual_dynamics_model.state_dict(), save_path)
-
-
-if __name__ == "__main__":
-    train()
+    save_path = os.path.join(ckpt_path, 'pushing_{}_dynamics_model.pt'.format(model))
+    torch.save(pushing_model.state_dict(), save_path)

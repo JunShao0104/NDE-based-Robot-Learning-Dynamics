@@ -33,10 +33,11 @@ class ODEFunc(nn.Module):
 
 # NeuralODE
 class NeuralODE(nn.Module):
-  def __init__(self, state_dim=3, action_dim=3):
+  def __init__(self, state_dim=3, action_dim=3, method = None):
     super().__init__()
     self.state_dim = state_dim
     self.action_dim = action_dim
+    self.method = method
     self.odefunc = ODEFunc(state_dim+action_dim, state_dim+action_dim)
 
   def forward(self, state, action):
@@ -50,7 +51,11 @@ class NeuralODE(nn.Module):
       state_action = torch.cat((state, action), dim=1) # (B, 6)
       t = torch.arange(2).float() # (2, )
       # Compute
-      next_state_action = odeint(self.odefunc, state_action, t) # (2, B, 6)
+      if(self.method):
+        # print(self.method)
+        next_state_action = odeint(self.odefunc, state_action, t, method=self.method, options=dict(step_size=0.5)) # (2, B, 6)
+      else:
+        next_state_action = odeint(self.odefunc, state_action, t)
       next_state = next_state_action[-1, :, :self.state_dim] # (B, 3)
 
       return next_state

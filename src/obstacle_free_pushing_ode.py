@@ -10,28 +10,25 @@ import matplotlib.pyplot as plt
 from numpngw import write_apng
 from IPython.display import Image
 from tqdm.notebook import tqdm
-from env.panda_pushing_env import PandaPushingEnv
-from utils.visualizers import GIFVisualizer, NotebookVisualizer
+from src.env.panda_pushing_env import PandaPushingEnv
+from src.utils.visualizers import GIFVisualizer, NotebookVisualizer
 
 # Model
-from model.absolute_dynamics_model import AbsoluteDynamicsModel
-from model.residual_dynamics_model import ResidualDynamicsModel
-from model.polynet_dynamics_model import Poly_2_DynamicsModel
-from model.polynet_dynamics_model import mPoly_2_DynamicsModel
-from model.polynet_dynamics_model import way_2_DynamicsModel
-from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
-from model.neural_ode_model import NeuralODE
+from src.model.absolute_dynamics_model import AbsoluteDynamicsModel
+from src.model.residual_dynamics_model import ResidualDynamicsModel
+from src.model.polynet_dynamics_model import Poly_2_DynamicsModel
+from src.model.polynet_dynamics_model import mPoly_2_DynamicsModel
+from src.model.polynet_dynamics_model import way_2_DynamicsModel
+from src.model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
+from src.model.neural_ode_model import NeuralODE
 
 # Cost function and pushing controller
-from controller.pushing_controller import PushingController
-from controller.pushing_cost import collision_detection
-from controller.pushing_cost import free_pushing_cost_function, collision_detection, obstacle_avoidance_pushing_cost_function
-from env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
+from src.controller.pushing_controller import PushingController
+from src.controller.pushing_cost import collision_detection
+from src.controller.pushing_cost import free_pushing_cost_function, collision_detection, obstacle_avoidance_pushing_cost_function
+from src.env.panda_pushing_env import TARGET_POSE_FREE, TARGET_POSE_OBSTACLES, BOX_SIZE
 
-# pth path
-ckpt_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous'
-
-def obstacle_free_pushing_ode():
+def obstacle_free_pushing_ode(method, path):
     # Control on an obstacle free environment
 
     # Notebook Visualizer
@@ -42,15 +39,20 @@ def obstacle_free_pushing_ode():
     # GIF Visualizer
     visualizer = GIFVisualizer()
 
+    # Path
+    ckpt_path = (path + '/ckpt/Panda_pushing/continuous')
+
     # set up controller and environment
-    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  camera_heigh=800, camera_width=800, render_every_n_steps=5)
+    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  camera_heigh=800, camera_width=800, render_every_n_steps=5, path = path)
 
     # Load the pushing dynamics model
-    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step_no_proj.pt')
+    ode_pth_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}.pt'.format(method if method else "dopri5"))
     # proj_pth_path = os.path.join(ckpt_path, 'ProjNN_single_step.pt')
     state_dim = 3
     action_dim = 3
-    NeuralODE_model = NeuralODE(ode_pth_path=ode_pth_path, proj_pth_path=None, state_dim=state_dim, action_dim=action_dim)
+    #NeuralODE_model = NeuralODE(ode_pth_path=ode_pth_path, proj_pth_path=None, state_dim=state_dim, action_dim=action_dim)
+    NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim, method= method)
+    NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
 
     controller = PushingController(env, NeuralODE_model,
                                 free_pushing_cost_function, num_samples=100, horizon=20)
@@ -82,7 +84,3 @@ def obstacle_free_pushing_ode():
     # Evaluate state
     # plt.close(fig)
     Image(filename=visualizer.get_gif(given_name='obstacle_free_pushing_visualization_ode.gif'))
-
-
-if __name__ == "__main__":
-    obstacle_free_pushing_ode()
