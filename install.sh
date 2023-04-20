@@ -7,3 +7,4 @@ pip install control
 pip install ipython
 pip install tqdm
 pip install gym
+pip install pyyaml

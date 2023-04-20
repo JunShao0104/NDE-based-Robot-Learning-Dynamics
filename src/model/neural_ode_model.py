@@ -9,13 +9,55 @@ sys.path.append("..")
 from torchdiffeq import odeint_adjoint as odeint
 
 # func
-class ODEFunc(nn.Module):
+class ODEFunc_1(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(ODEFunc, self).__init__()
+        super(ODEFunc_1, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.net = nn.Linear(in_channels, out_channels)
+
+        for m in self.net.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, mean=0, std=0.1)
+                nn.init.constant_(m.bias, val=0)
+    
+    def forward(self, t, y):
+        pred_y = self.net(y)
+
+        return pred_y
+
+
+class ODEFunc_2(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ODEFunc_2, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.net = nn.Sequential(
             nn.Linear(in_channels, 100),
+            nn.Tanh(),
+            nn.Linear(100, out_channels)
+        )
+
+        for m in self.net.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, mean=0, std=0.1)
+                nn.init.constant_(m.bias, val=0)
+    
+    def forward(self, t, y):
+        pred_y = self.net(y)
+
+        return pred_y
+
+
+class ODEFunc_3(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ODEFunc_3, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.net = nn.Sequential(
+            nn.Linear(in_channels, 100),
+            nn.Tanh(),
+            nn.Linear(100, 100),
             nn.Tanh(),
             nn.Linear(100, out_channels)
         )
@@ -38,7 +80,15 @@ class NeuralODE(nn.Module):
     self.state_dim = state_dim
     self.action_dim = action_dim
     self.method = method
-    self.odefunc = ODEFunc(state_dim+action_dim, state_dim+action_dim)
+
+    # func 1
+    self.odefunc = ODEFunc_1(state_dim+action_dim, state_dim+action_dim)
+
+    # func 2
+    # self.odefunc = ODEFunc_2(state_dim+action_dim, state_dim+action_dim)
+
+    # func 3
+    # self.odefunc = ODEFunc_3(state_dim+action_dim, state_dim+action_dim)
 
   def forward(self, state, action):
       """

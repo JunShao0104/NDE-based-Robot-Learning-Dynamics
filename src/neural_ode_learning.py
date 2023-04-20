@@ -108,7 +108,7 @@ def train_singlestep(method, dataset, path):
     
 
     # save model:
-    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}.pt'.format(method if method else "dopri5"))
+    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}_func1.pt'.format(method if method else "dopri5"))
     torch.save(ode_model.state_dict(), ode_model_save_path)
 
 
@@ -159,16 +159,16 @@ def train_multistep(dataset, path):
     
 
     # save model:
-    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_multi_step.pt')
+    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_multi_step_{}.pt'.format(method if method else "dopri5"))
     torch.save(ode_model.state_dict(), ode_model_save_path)
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
     # Train single step
     # train_singlestep()
     # Train single step Fixed step rk4
-    train_singlestep('rk4')
+    # train_singlestep('rk4')
 
     # Train multi step
     # train_multistep()

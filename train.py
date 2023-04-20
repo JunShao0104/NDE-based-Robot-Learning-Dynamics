@@ -2,6 +2,7 @@ import yaml
 import os
 import numpy as np
 import argparse
+
 from src.single_step_training import train as single_step_train
 from src.single_step_training_FK import discrete_train as single_step_train_FK
 from src.single_step_training_FK import continuous_train as single_step_train_ode_FK
@@ -32,9 +33,9 @@ def train(configs):
         if(configs['dataset'] == 'panda'):
             dataset = np.load(os.path.join(path, 'data/Panda_pushing/collected_data.npy'), allow_pickle=True)
             # Neural ODE with method
-            if(model== 'ode'):
+            if(model == 'ode'):
                 print("Training ODE, ",method, ", Single step, panda dataset")
-                ode_single_train(method=method, dataset = dataset, path = path)
+                ode_single_train(method = method, dataset = dataset, path = path)
             # Other models
             else:
                 print("Training ",model, ", Single step, panda dataset")
