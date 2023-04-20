@@ -3,7 +3,8 @@ import os
 import numpy as np
 import argparse
 from src.single_step_training import train as single_step_train
-from src.single_step_training_FK import train as single_step_train_FK
+from src.single_step_training_FK import discrete_train as single_step_train_FK
+from src.single_step_training_FK import continuous_train as single_step_train_ode_FK
 from src.multi_step_training import train as multi_step_train
 from src.neural_ode_learning import train_singlestep as ode_single_train
 from src.neural_ode_learning import train_multistep as ode_multi_train
@@ -46,8 +47,7 @@ def train(configs):
             if(model== 'ode'):
                 #**************************NEED IMPLEMENT***********************************
                 print("Training ODE, ",method, ", Single step, baxter FK dataset")
-                print("Need ODE single train for FK")
-                # ode_single_train(method=method, dataset = dataset, path = path)
+                single_step_train_ode_FK(method=method, dataset = dataset, path = path)
             # Other models
             else:
                 print("Training ",model, ", Single step, baxter FK dataset")
