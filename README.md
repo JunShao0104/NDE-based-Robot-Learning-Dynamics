@@ -19,8 +19,19 @@ bash install.sh
 ## 1 Robot Learning Dynamics for Panda Planar Pushing
 
 ### REFORMATED instruction
+```bash
+# Train models with setup designed in models.yaml
 python train.py
-
+# Pushing with trained weights from ckpts folder
+python push.py
+```
+# models.yaml has following variables
+- model : options: absolute, mpoly_2, poly_2, residual, RKNN, way_2, ode
+- ODE_solver: options: False, 'rk4' # Can only be set when model = 'ode'; False if default (dopri5); 
+- obstacle : options: True, False # True if pushing with obstacle, False if free pushing
+- base_dir : '.../NDE-based-Robot-Learning-Dynamics' #*NEEDS TO BE CHANGED BEFORE RUNNING*
+- step : options: single, multi      # Single step or Multi step; options: single, multi
+- dataset: options: panda, baxterfk, baxterik
 
 ### 1.1 Discrete ODE Learning V.S. Continuous ODE Learning
 Compare the prediction performance of the discrete ODE learning methods and the continuous ODE learning method.
