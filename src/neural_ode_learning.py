@@ -120,6 +120,7 @@ def train_multistep(method, dataset, path, num_steps = 4):
     # dimension
     state_dim = 3
     action_dim = 3
+    num_steps = 8
 
     # Func
     print("Currenlty using ODE Solver: ", method if method else "dopri5")
@@ -135,7 +136,7 @@ def train_multistep(method, dataset, path, num_steps = 4):
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
-    pose_loss = MultiStepLoss_ode(pose_loss)
+    pose_loss = MultiStepLoss_ode(pose_loss, method)
 
     # training process
     lr = 1e-5

@@ -2,7 +2,7 @@ import scipy.io as io
 import numpy as np
 
 # Two bool variable to control tranform which dataset
-Transform_Baxter = False
+Transform_Baxter = True
 Transform_Kuka = False
 
 # Baxter data
@@ -40,17 +40,25 @@ if Transform_Baxter:
 
     # Transform the trajectory length to the same number
     Baxter_data_lst_shorten = []
-    for data in Baxter_data_lst:
-        data = data[:min_traj_len, :]
+    Baxter_data_lst_val = []
+    for data_item in Baxter_data_lst:
+        data = data_item[:min_traj_len, :]
+        data_val = data_item[min_traj_len:, :]
         Baxter_data_lst_shorten.append(data)
-        print(data.shape)
+        Baxter_data_lst_val.append(data_val)
+        # print(data.shape)
+        # print(data_val.shape)
 
     # Concatenation
     Baxter_data_array = np.concatenate(Baxter_data_lst_shorten, axis=0)
     print(Baxter_data_array.shape) # (17410, 35)
 
+    Baxter_data_val = np.concatenate(Baxter_data_lst_val, axis=0)
+    print(Baxter_data_val.shape)
+
     # Save the data as npy form
-    np.save('BaxterDirectDynamics.npy', Baxter_data_array)
+    # np.save('BaxterDirectDynamics.npy', Baxter_data_array)
+    np.save('BaxterDirectDynamics_val.npy', Baxter_data_val)
 
 
 # Kuka data
