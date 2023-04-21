@@ -21,7 +21,6 @@ from src.obstacle_free_pushing_ode import obstacle_free_pushing_ode as obstacle_
 from src.obstacle_free_pushing import obstacle_free_pushing as obstacle_free_push
 import torch
 import os
-import pyglet
 
 
 
