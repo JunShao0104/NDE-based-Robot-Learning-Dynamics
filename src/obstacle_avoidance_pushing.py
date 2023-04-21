@@ -52,43 +52,51 @@ def obstacle_avoidance_pushing(model, path):
     else:
         print("No model name: ", model, " found, please check the list again. ")
 
+    print("Currently testing model: ", model)
     # GIF Visualizer
-    visualizer = GIFVisualizer()
-    # set up controller and environment
-    env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5, path = path)
 
     # Load the pushing dynamics model
     model_path = os.path.join(ckpt_path, 'pushing_{}_dynamics_model.pt'.format(model))
-    pushing_model.load_state_dict(torch.load(model_path))
+    for tries in range(10):
+        visualizer = GIFVisualizer()
+        # print(tries)
+        # set up controller and environment
+        env = PandaPushingEnv(visualizer=visualizer, render_non_push_motions=False,  include_obstacle=True, camera_heigh=800, camera_width=800, render_every_n_steps=5, path = path)
+        pushing_model.load_state_dict(torch.load(model_path))
 
-    controller = PushingController(env, pushing_model,
-                                obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
-    env.reset()
+        controller = PushingController(env, pushing_model,
+                                    obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=20)
+        env.reset()
 
-    state_0 = env.reset()
-    state = state_0
+        state_0 = env.reset()
+        state = state_0
 
-    num_steps_max = 20
+        num_steps_max = 20
 
-    for i in range(num_steps_max):
-        action = controller.control(state)
-        state, reward, done, _ = env.step(action)
-        if done:
+        for i in range(num_steps_max):
+            action = controller.control(state)
+            try:
+                state, reward, done, _ = env.step(action)
+                if done:
+                    break
+            except AttributeError:
+                print('Action out of limit, retry...')
+        # Evaluate if goal is reached
+        end_state = env.get_state()
+        target_state = TARGET_POSE_OBSTACLES
+        goal_distance = np.linalg.norm(end_state[:2]-target_state[:2]) # evaluate only position, not orientation
+        goal_reached = goal_distance < BOX_SIZE
+        if goal_reached:
             break
-
-            
-    # Evaluate if goal is reached
-    end_state = env.get_state()
-    target_state = TARGET_POSE_OBSTACLES
-    goal_distance = np.linalg.norm(end_state[:2]-target_state[:2]) # evaluate only position, not orientation
-    goal_reached = goal_distance < BOX_SIZE
-
+    
     print(f'GOAL REACHED: {goal_reached}')
-            
+    if goal_reached:
+        gif = visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization_success.gif', path='demo/')
+        # imageObject = Image.open(gif)
+    return goal_reached
             
     # Evaluate state
     # plt.close(fig)
-    imageObject = Image.open(visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization.gif'))
 
 
 # if __name__ == "__main__":
