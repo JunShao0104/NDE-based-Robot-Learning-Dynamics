@@ -10,7 +10,7 @@ from model.polynet_dynamics_model import Poly_2_DynamicsModel, mPoly_2_DynamicsM
 from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
 
 # Load the collected data: 
-data_path = '/mnt/NDE-based-Robot-Learning-Dynamics/data/Panda_pushing'
+data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data/Panda_pushing'
 validation_data = np.load(os.path.join(data_path, 'validation_data.npy'), allow_pickle=True)
 
 
@@ -81,7 +81,7 @@ def validation_single_step_ode():
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(val_dataset))
 
     # model
-    ode_pth_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous/ODEFunc_single_step_rk4_func3_0_1.pt'
+    ode_pth_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous/ODEFunc_multi_step_dopri5_func3_8.pt'
     state_dim = 3
     action_dim = 3
     model = NeuralODE(state_dim, action_dim, method='rk4')

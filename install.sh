@@ -8,5 +8,4 @@ pip install ipython
 pip install tqdm
 pip install gym
 pip install pyyaml
-pip install cv2
 pip install Pillow

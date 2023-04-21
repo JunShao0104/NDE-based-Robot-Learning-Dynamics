@@ -11,7 +11,7 @@ from model.polynet_dynamics_model import Poly_2_DynamicsModel, mPoly_2_DynamicsM
 from model.fractalnet_dynamics_model import RKNN_2_DynamicsModel
 
 # Load the collected data: 
-data_path = '/mnt/NDE-based-Robot-Learning-Dynamics/data/FK'
+data_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/data/FK'
 validation_data = np.load(os.path.join(data_path, 'BaxterDirectDynamics_val.npy'), allow_pickle=True)
 
 # Device
@@ -26,11 +26,11 @@ def validation_single_step():
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(val_dataset))
 
     # model
-    model_pth_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/FK/Baxter/pushing_mpoly_dynamics_model_single_step.pt'
+    model_pth_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt/FK/Baxter/pushing_mpoly_dynamics_model_single_step.pt'
     state_dim = 14
     action_dim = 7
-    model = mPoly_2_DynamicsModel(state_dim, action_dim).to(device)
-    model.load_state_dict(torch.load(model_pth_path, map_location=torch.device('cpu')))
+    model = mPoly_2_DynamicsModel(state_dim, action_dim)
+    model.load_state_dict(torch.load(model_pth_path))
 
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
     pose_loss = SingleStepLoss(pose_loss)
@@ -53,10 +53,10 @@ def validation_single_step_ode():
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(val_dataset))
 
     # model
-    ode_pth_path = '/mnt/NDE-based-Robot-Learning-Dynamics/ckpt/Panda_pushing/continuous/ODEFunc_single_step_rk4_func3_0_1.pt'
-    state_dim = 3
-    action_dim = 3
-    model = NeuralODE(state_dim, action_dim, method='rk4').to(device)
+    ode_pth_path = '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics/ckpt/FK/Baxter/ODEFunc_multi_step_rk4_4.pt'
+    state_dim = 14
+    action_dim = 7
+    model = NeuralODE(state_dim, action_dim, method='rk4')
     model.load_state_dict(torch.load(ode_pth_path))
 
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
@@ -75,13 +75,13 @@ def validation_single_step_ode():
 
 if __name__ == "__main__":
     # single step model
-    validation_single_step()
+    # validation_single_step()
 
     # Multi step model
     # validation_multi_step()
 
     # single step ode model
-    # validation_single_step_ode()
+    validation_single_step_ode()
 
     # multi step ode model
     # validation_multi_step_ode() 
