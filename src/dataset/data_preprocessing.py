@@ -124,6 +124,7 @@ def process_data_multiple_step(collected_data, batch_size=500, num_steps=4):
      - You should implement MultiStepDynamicsDataset below.
         This class extends pytorch Dataset class to have a custom data format.
     """
+    print(num_steps)
     train_loader = None
     val_loader = None
     # --- Your code here

@@ -12,6 +12,7 @@ from IPython.display import Image
 from tqdm.notebook import tqdm
 from src.env.panda_pushing_env import PandaPushingEnv
 from src.utils.visualizers import GIFVisualizer, NotebookVisualizer
+from PIL import Image
 
 # Model
 from src.model.absolute_dynamics_model import AbsoluteDynamicsModel
@@ -87,7 +88,7 @@ def obstacle_avoidance_pushing(model, path):
             
     # Evaluate state
     # plt.close(fig)
-    Image(filename=visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization.gif'))
+    imageObject = Image.open(visualizer.get_gif(given_name='obstacle_avoidance_pushing_visualization.gif'))
 
 
 # if __name__ == "__main__":

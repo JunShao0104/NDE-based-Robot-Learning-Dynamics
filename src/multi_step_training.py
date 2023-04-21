@@ -58,7 +58,7 @@ def val_step(model, val_loader, loss_func) -> float:
 
 
 # Training function
-def train(model, path, dataset):
+def train(model, path, dataset, num_steps = 4):
     # Model
     if model == 'absolute':
         pushing_model = AbsoluteDynamicsModel(3, 3)
@@ -74,12 +74,11 @@ def train(model, path, dataset):
         pushing_model = way_2_DynamicsModel(3, 3)
     else:
         print("No model name: ", model, " found, please check the list again. ")
-
     # Path
-    ckpt_path = os.path.join(path,'/ckpt')
+    ckpt_path = (path + '/ckpt/Panda_pushing/discrete')
 
     # Data loader
-    train_loader, val_loader = process_data_multiple_step(dataset) # batchsize default to be 500
+    train_loader, val_loader = process_data_multiple_step(dataset, num_steps=num_steps) # batchsize default to be 500
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
@@ -111,7 +110,7 @@ def train(model, path, dataset):
     
 
     # save model:
-    save_path = os.path.join(ckpt_path, 'pushing_multistep_{}_dynamics_model.pt'.format(model))
+    save_path = os.path.join(ckpt_path, 'pushing_multistep_{}_dynamics_model_{}.pt'.format(model, num_steps))
     torch.save(pushing_model.state_dict(), save_path)
 
 

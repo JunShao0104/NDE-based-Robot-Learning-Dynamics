@@ -74,7 +74,7 @@ def train_singlestep(method, dataset, path):
     ode_model = NeuralODE(state_dim, action_dim, method = method).to(device)
 
     # Path
-    ckpt_path = os.path.join(path,'/ckpt/Panda_pushing/continuous')
+    ckpt_path = path + '/ckpt/Panda_pushing/continuous'
 
     # Data loader
     train_loader, val_loader = process_data_single_step(dataset) # batchsize default to be 500
@@ -108,7 +108,7 @@ def train_singlestep(method, dataset, path):
     
 
     # save model:
-    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}_func1.pt'.format(method if method else "dopri5"))
+    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_single_step_{}_func3.pt'.format(method if method else "dopri5"))
     torch.save(ode_model.state_dict(), ode_model_save_path)
 
 
@@ -116,19 +116,22 @@ def train_singlestep(method, dataset, path):
 Multi Step
 """
 # Train with torch dataset and multi step
-def train_multistep(dataset, path):
+def train_multistep(method, dataset, path, num_steps = 4):
     # dimension
     state_dim = 3
     action_dim = 3
 
     # Func
+    print("Currenlty using ODE Solver: ", method if method else "dopri5")
     ode_model = NeuralODE(state_dim, action_dim).to(device)
 
     # Path
-    ckpt_path = os.path.join(path,'/ckpt/Panda_pushing/continuous')
+    ckpt_path = path + '/ckpt/Panda_pushing/continuous'
+    print(ckpt_path)
+    print(num_steps)
 
     # Data loader
-    train_loader, val_loader = process_data_multiple_step(dataset, batch_size=1000) # batchsize default to be 500
+    train_loader, val_loader = process_data_multiple_step(dataset, batch_size=1000, num_steps=num_steps) # batchsize default to be 500
 
     # Loss function
     pose_loss = SE2PoseLoss(block_width=0.1, block_length=0.1)
@@ -159,7 +162,7 @@ def train_multistep(dataset, path):
     
 
     # save model:
-    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_multi_step_{}.pt'.format(method if method else "dopri5"))
+    ode_model_save_path = os.path.join(ckpt_path, 'ODEFunc_multi_step_{}_func3_{}.pt'.format(method if method else "dopri5", num_steps))
     torch.save(ode_model.state_dict(), ode_model_save_path)
 
 

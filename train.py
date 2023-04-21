@@ -9,6 +9,8 @@ from src.single_step_training_FK import continuous_train as single_step_train_od
 from src.multi_step_training import train as multi_step_train
 from src.neural_ode_learning import train_singlestep as ode_single_train
 from src.neural_ode_learning import train_multistep as ode_multi_train
+from src.multi_step_training_FK import discrete_train as multi_step_train_FK
+from src.multi_step_training_FK import continuous_train as multi_step_train_ode_FK
 
 from src.obstacle_avoidance_pushing import obstacle_avoidance_pushing as obstacle_avoid_push
 from src.obstacle_avoidance_pushing_ode import obstacle_avoidance_pushing_ode_single_step as obstacle_avoid_single_ode
@@ -46,7 +48,6 @@ def train(configs):
             dataset = torch.from_numpy(np.load(os.path.join(path, 'data/FK/BaxterDirectDynamics.npy'), allow_pickle=True))
             # Neural ODE with method
             if(model== 'ode'):
-                #**************************NEED IMPLEMENT***********************************
                 print("Training ODE, ",method, ", Single step, baxter FK dataset")
                 single_step_train_ode_FK(method=method, dataset = dataset, path = path)
             # Other models
@@ -71,25 +72,30 @@ def train(configs):
     
     # Multi step training
     elif(configs['step'] == 'multi'):
+        num_steps = configs['num_steps']
         # Using Panda dataset from HW
         if(configs['dataset'] == 'panda'):
             dataset = np.load(os.path.join(path, 'data/Panda_pushing/collected_data.npy'), allow_pickle=True)
             # Neural ODE with method
             if(model== 'ode'):
                 print("Training ODE, ",method, ", Multi step, panda dataset")
-                ode_multi_train(method=method, dataset = dataset, path = path)
+                ode_multi_train(method=method, dataset = dataset, path = path, num_steps = num_steps)
             # Other models
             else:
-                print("Training ",model, ", Multi step, panda dataset")
-                multi_step_train(model = model, dataset = dataset, path = path)
+                print("Training ",model, ", Multi step with step: ", num_steps,", panda dataset")
+                multi_step_train(model = model, dataset = dataset, path = path, num_steps = num_steps)
 
         # Using Baxter Forward Kinamatics Dataset
         elif(configs['dataset'] == 'baxterfk'):
-             #**************************NEED IMPLEMENT***********************************
             dataset = torch.from_numpy(np.load(os.path.join(path, 'data/FK/BaxterDirectDynamics.npy'), allow_pickle=True))
-            print("Training ",model, ", Multi step, baxter FK dataset")
-            print("NOT YET IMPLEMENTED")
-            #multi_step_train_FK(model = model, dataset = dataset)
+            # Neural ODE with method
+            if(model== 'ode'):
+                print("Training ODE, ",method, ", Multi step, BaxterFK dataset")
+                multi_step_train_ode_FK(method=method, dataset = dataset, path = path, num_steps = num_steps)
+            # Other models
+            else:
+                print("Training ",model, ", Multi step with step: ", num_steps,", BaxterFK dataset")
+                multi_step_train_FK(model = model, dataset = dataset, path = path, num_steps = num_steps)
 
         # Using Baxter Inverse Kinamatics Dataset
         elif(configs['dataset'] == 'baxterik'):

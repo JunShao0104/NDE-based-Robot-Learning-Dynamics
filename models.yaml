@@ -1,6 +1,7 @@
 model : 'ode' # options: absolute, mpoly_2, poly_2, residual, RKNN, way_2, ode
-ODE_solver: False  # Can only be set when model = 'ode'; False if default (dopri5); options: False or 'rk4'
-obstacle : False # True if pushing with obstacle, False if free pushing
-base_dir : '/mnt/NDE-based-Robot-Learning-Dynamics' #*NEEDS TO BE CHANGED BEFORE RUNNING*
+ODE_solver: rk4  # Can only be set when model = 'ode'; False if default (dopri5); options: False or 'rk4'
+obstacle : True # True if pushing with obstacle, False if free pushing
+base_dir : '/home/lidonghao/rob498proj/NDE-based-Robot-Learning-Dynamics' #*NEEDS TO BE CHANGED BEFORE RUNNING*
 step : 'single'      # Single step or Multi step; options: single, multi
-dataset: 'panda'    # options: panda, baxterfk, baxterik
+num_steps: 4        # Number of steps for multi step training
+dataset: 'baxterfk'    # options: panda, baxterfk, baxterik

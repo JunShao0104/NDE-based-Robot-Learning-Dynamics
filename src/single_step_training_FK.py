@@ -219,7 +219,7 @@ def continuous_train(method, dataset, path):
     ode_model = NeuralODE(state_dim, action_dim, method = method).to(device)
 
     # Path
-    ckpt_path = os.path.join(path,'/ckpt/FK/Baxter')
+    ckpt_path = path + '/ckpt/FK/Baxter'
 
     # Data loader
     train_loader, val_loader = process_data_single_step_FK(dataset) # batchsize default to be 1000
@@ -254,5 +254,5 @@ def continuous_train(method, dataset, path):
             print("Val Loss: ", val_loss_i)
 
     # save model
-    save_path = os.path.join(ckpt_path, 'pushing_ode_model_single_step.pt')
+    save_path = os.path.join(ckpt_path, 'ODEFunc_single_step_rk4.pt')
     torch.save(ode_model.state_dict(), save_path)

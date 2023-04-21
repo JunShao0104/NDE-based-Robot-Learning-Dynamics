@@ -217,18 +217,19 @@ class MultiStepDynamicsDataset_FK(Dataset):
         data_idx = traj_idx * self.trajectory_length_full # To locate the start of the traj in data array
         if type(self.data) is np.ndarray:
             # state
-            state = torch.from_numpy(self.data[data_idx, :14])
+            state = torch.from_numpy(self.data[data_idx, :14]) 
             # action
             action = []
             for step in range(self.num_steps):
                 action.append(self.data[(data_idx+step):(data_idx+step+1), 14:21])
+                # print(self.data[(data_idx+step):(data_idx+step+1), 14:21].shape)
             action = np.stack(action, axis=0)
             action = torch.from_numpy(action)
             # next state
             next_state = []
             for step in range(self.num_steps):
-                next_state.append(self.data[(data_idx+step):(datat_idx+step+1), 21:])
-                next_state = np.stack(next_state, axis=0)
+                next_state.append(self.data[(data_idx+step):(data_idx+step+1), 21:])
+            next_state = np.stack(next_state, axis=0)
             next_state = torch.from_numpy(next_state)
         else:
             # state
@@ -237,13 +238,17 @@ class MultiStepDynamicsDataset_FK(Dataset):
             action = []
             for step in range(self.num_steps):
                 action.append(self.data[(data_idx+step):(data_idx+step+1), 14:21])
-            action = np.stack(action, axis=0)
+                # print(self.data[(data_idx+step):(data_idx+step+1), 14:21].shape)
+            action = torch.stack(action, axis=0).squeeze(dim = 1)
+            # print(action.shape)
             # next state
             next_state = []
             for step in range(self.num_steps):
-                next_state.append(self.data[(data_idx+step):(datat_idx+step+1), 21:])
-                next_state = np.stack(next_state, axis=0)
-        
+                next_state.append(self.data[(data_idx+step):(data_idx+step+1), 21:])
+            next_state = torch.stack(next_state, axis=0).squeeze(dim = 1)
+        # print("state shape: ", state.shape)
+        # print("action shape: ", action.shape)
+        # print("next_state shape: ", next_state.shape)
         sample['state'] = state.float()
         sample['action'] = action.float()
         sample['next_state'] = next_state.float()
