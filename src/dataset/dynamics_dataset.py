@@ -227,8 +227,8 @@ class MultiStepDynamicsDataset_FK(Dataset):
             # next state
             next_state = []
             for step in range(self.num_steps):
-                next_state.append(self.data[(data_idx+step):(datat_idx+step+1), 21:])
-                next_state = np.stack(next_state, axis=0)
+                next_state.append(self.data[(data_idx+step):(data_idx+step+1), 21:])
+            next_state = np.stack(next_state, axis=0)
             next_state = torch.from_numpy(next_state)
         else:
             # state
@@ -237,12 +237,12 @@ class MultiStepDynamicsDataset_FK(Dataset):
             action = []
             for step in range(self.num_steps):
                 action.append(self.data[(data_idx+step):(data_idx+step+1), 14:21])
-            action = np.stack(action, axis=0)
+            action = torch.stack(action, axis=0).squeeze(dim=1)
             # next state
             next_state = []
             for step in range(self.num_steps):
-                next_state.append(self.data[(data_idx+step):(datat_idx+step+1), 21:])
-                next_state = np.stack(next_state, axis=0)
+                next_state.append(self.data[(data_idx+step):(data_idx+step+1), 21:])
+            next_state = torch.stack(next_state, axis=0).squeeze(dim=1)
         
         sample['state'] = state.float()
         sample['action'] = action.float()

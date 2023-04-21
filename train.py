@@ -48,7 +48,7 @@ def train(configs):
             if(model== 'ode'):
                 #**************************NEED IMPLEMENT***********************************
                 print("Training ODE, ",method, ", Single step, baxter FK dataset")
-                single_step_train_ode_FK(method=method, dataset = dataset, path = path)
+                single_step_train_ode_FK(method = method, dataset = dataset, path = path)
             # Other models
             else:
                 print("Training ",model, ", Single step, baxter FK dataset")

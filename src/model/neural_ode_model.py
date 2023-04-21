@@ -82,13 +82,13 @@ class NeuralODE(nn.Module):
     self.method = method
 
     # func 1
-    self.odefunc = ODEFunc_1(state_dim+action_dim, state_dim+action_dim)
+    # self.odefunc = ODEFunc_1(state_dim+action_dim, state_dim+action_dim)
 
     # func 2
     # self.odefunc = ODEFunc_2(state_dim+action_dim, state_dim+action_dim)
 
     # func 3
-    # self.odefunc = ODEFunc_3(state_dim+action_dim, state_dim+action_dim)
+    self.odefunc = ODEFunc_3(state_dim+action_dim, state_dim+action_dim)
 
   def forward(self, state, action):
       """
