@@ -39,21 +39,22 @@ def obstacle_avoidance_pushing_ode_single_step(method, path):
     action_dim = 3
     NeuralODE_model = NeuralODE(state_dim=state_dim, action_dim=action_dim, method=method)
     NeuralODE_model.load_state_dict(torch.load(ode_pth_path))
-
+    trajectory_file = path + "/demo/ode_trajec.npy"
     for tries in range(10):
         controller = PushingController(env, NeuralODE_model,
                                     obstacle_avoidance_pushing_cost_function, num_samples=1000, horizon=30)
         env.reset()
-
         state_0 = env.reset()
         state = state_0
-
+        state_arr = np.array([state])
+        
         num_steps_max = 100
 
         for i in range(num_steps_max):
             action = controller.control(state)
             try:
                 state, reward, done, _ = env.step(action)
+                state_arr = np.vstack((state_arr, state.reshape((1,-1))))
                 if done:
                     break
             except AttributeError:
@@ -65,6 +66,9 @@ def obstacle_avoidance_pushing_ode_single_step(method, path):
         goal_distance = np.linalg.norm(end_state[:2]-target_state[:2]) # evaluate only position, not orientation
         goal_reached = goal_distance < BOX_SIZE
         if goal_reached:
+            # print(state_arr.shape)
+            with open(trajectory_file, 'wb') as f:
+                np.save(f, state_arr[:,:2])
             break
 
     print(f'GOAL REACHED: {goal_reached}')
@@ -99,7 +103,7 @@ def obstacle_avoidance_pushing_ode_multi_step(method, path):
     state_0 = env.reset()
     state = state_0
 
-    num_steps_max = 100
+    num_steps_max = 60
 
     for i in range(num_steps_max):
         action = controller.control(state)

@@ -11,3 +11,4 @@ pip install pyyaml
 pip install Pillow
 pip install imageio
 pip install opencv-python
+pip install matplotlib

@@ -21,25 +21,62 @@ from src.obstacle_free_pushing_ode import obstacle_free_pushing_ode as obstacle_
 from src.obstacle_free_pushing import obstacle_free_pushing as obstacle_free_push
 import torch
 import os
-
-
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     path = os.path.abspath(os.getcwd())
-    # print(path)
     parser = argparse.ArgumentParser(description="NDE_Based_Robot_Learning_Dynamics Demo")
     parser.add_argument("--model", help="Change if other model if preferred. Default: mpoly_2", default='mpoly_2')
     parser.add_argument("--ode_method", help="Change if other method if preferred. Default: rk4", default='rk4')
-    # parser.add_argument("--config", help="YAML config file", default="models.yaml")
+    parser.add_argument("--plot_traj", help="Plotting trajectory. Default: True", default=True)
     args = parser.parse_args()
-    
-    # if args.path:
-    #     path = args.path
-    # else: 
-    #     path = configs['base_dir']
+    demo_path = path + "/demo/"
 
     model_demo_1 = obstacle_avoid_push(args.model, path)
     model_demo_2 = obstacle_avoid_single_ode(args.ode_method, path)
+
+
+    ###################################
+    # Seperate Plot for Report
+    # model_traj = np.load(demo_path + 'model_trajec.npy')
+    # ode_traj = np.load(demo_path + '/ode_trajec.npy')
+    # plt.figure(figsize=(10,5))
+    # plt.plot(model_traj[:,0],model_traj[:,1])
+    # # plt.axis('off')
+    # plt.title("mPoly-2 model trajectory")
+    # plt.savefig(path + "/model.png")
+    # plt.show()
+
+
+    # plt.figure(figsize=(10,5))
+    # plt.plot(ode_traj[:,0],ode_traj[:,1])
+    # # plt.axis('off')
+    # plt.xlim = ([0,1])
+    # plt.ylim = ([0,1])
+    # plt.title("Neural ODE (rk4 + 0.5 + 3 F-C) model trajectory")
+    # plt.savefig(path + "/ode.png")
+    # plt.show()
+    ####################################
+
+    if(model_demo_1 and model_demo_2):
+        if args.plot_traj:
+            model_traj = np.load(demo_path + 'model_trajec.npy')
+            ode_traj = np.load(demo_path + 'ode_trajec.npy')
+            fig, (ax1, ax2) = plt.subplots(2)
+            ax1.set_title('{} trajectory'.format(args.model))
+            ax2.set_title('ode {} trajectory'.format(args.ode_method))
+            ax1.plot(model_traj[:,0],model_traj[:,1])
+            ax2.plot(ode_traj[:,0], ode_traj[:,1])
+            ax1.set(xlabel='x', ylabel='y')
+            ax2.set(xlabel='x', ylabel='y')
+            fig.tight_layout(pad=5.0)
+            plt.savefig(demo_path + "trajectory_success.png")
+            plt.show()
+        else:
+            img = np.asarray(Image.open(demo_path + "trajectory.png"))
+            imgplot = plt.imshow(img)
+            
+
     # model_demo_1, model_demo_2 = False, False
     if(model_demo_1):
         demo1_file = path + "/demo/obstacle_avoidance_pushing_visualization_success.gif"
@@ -54,21 +91,19 @@ if __name__ == "__main__":
     gif1 = imageio.get_reader(demo1_file)
     gif2 = imageio.get_reader(demo2_file)
 
-    #If they don't have the same number of frame take the shorter
+    #If they don't have the same number of frame take the longer
     number_of_frames = max(gif1.get_length(), gif2.get_length()) 
 
     #Create writer object
-    output_path = path + '/demo/output.gif'
+    output_path = demo_path + 'output.gif'
     new_gif = imageio.get_writer(output_path)
 
     for frame_number in range(number_of_frames):
-        # print(gif1.get_next_data())
         if(frame_number < gif1.get_length()):
             img1 = gif1.get_next_data()
         else:
             img1 = img1
         img2 = gif2.get_next_data()
-        #here is the magic
         new_image = np.hstack((img1, img2))
         new_gif.append_data(new_image)
 
@@ -79,6 +114,7 @@ if __name__ == "__main__":
     pic_name = path + '/demo/output.gif'
     im = Image.open(pic_name)
     
+    # Show gif
     for frame in ImageSequence.Iterator(im):
         frame = frame.convert('RGB')
         cv2_frame = np.array(frame)

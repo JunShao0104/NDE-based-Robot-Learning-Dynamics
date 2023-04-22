@@ -57,6 +57,8 @@ def obstacle_avoidance_pushing(model, path):
 
     # Load the pushing dynamics model
     model_path = os.path.join(ckpt_path, 'pushing_{}_dynamics_model.pt'.format(model))
+    # Trajectory npy file store
+    trajectory_file = path + "/demo/model_trajec.npy"
     for tries in range(10):
         visualizer = GIFVisualizer()
         # print(tries)
@@ -70,13 +72,14 @@ def obstacle_avoidance_pushing(model, path):
 
         state_0 = env.reset()
         state = state_0
-
+        state_arr = np.array([state])
         num_steps_max = 20
 
         for i in range(num_steps_max):
             action = controller.control(state)
             try:
                 state, reward, done, _ = env.step(action)
+                state_arr = np.vstack((state_arr, state.reshape((1,-1))))
                 if done:
                     break
             except AttributeError:
@@ -87,6 +90,8 @@ def obstacle_avoidance_pushing(model, path):
         goal_distance = np.linalg.norm(end_state[:2]-target_state[:2]) # evaluate only position, not orientation
         goal_reached = goal_distance < BOX_SIZE
         if goal_reached:
+            with open(trajectory_file, 'wb') as f:
+                np.save(f, state_arr[:,:2])
             break
     
     print(f'GOAL REACHED: {goal_reached}')
