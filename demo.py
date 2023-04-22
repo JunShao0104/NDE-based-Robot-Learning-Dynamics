@@ -31,7 +31,11 @@ if __name__ == "__main__":
     parser.add_argument("--plot_traj", help="Plotting trajectory. Default: True", default=True)
     args = parser.parse_args()
     demo_path = path + "/demo/"
-
+    ### Time taking estimation for running demo
+    print("###############################################################################################################################################")
+    print("This demo is expected to take less than 10 mins, it will AUTOMATICALLY pop up one plot contains two trajectories and pushing task gifs for model comparison demonstration.")
+    print("ENJOY!!!")
+    print("###############################################################################################################################################")
     model_demo_1 = obstacle_avoid_push(args.model, path)
     model_demo_2 = obstacle_avoid_single_ode(args.ode_method, path)
 
