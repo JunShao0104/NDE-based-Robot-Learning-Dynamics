@@ -13,28 +13,27 @@ git clone https://github.com/JunShao0104/NDE-based-Robot-Learning-Dynamics.git
 
 # Install Packages
 bash install.sh
-./install.sh
 ```
 
 ## 1 Robot Learning Dynamics for Panda Planar Pushing
 
-### REFORMATED instruction
+### Quick Start
 ```bash
 # Train models with setup designed in models.yaml
 python train.py
 # Pushing with trained weights from ckpts folder
 python push.py
 ```
-### models.yaml has following variables
-- model : options: absolute, mpoly_2, poly_2, residual, RKNN, way_2, ode
-- ODE_solver: options: False, 'rk4' # Can only be set when model = 'ode'; False if default (dopri5); 
-- obstacle : options: True, False # True if pushing with obstacle, False if free pushing
-- base_dir : '.../NDE-based-Robot-Learning-Dynamics' #*NEEDS TO BE CHANGED BEFORE RUNNING*
-- step : options: single, multi      # Single step or Multi step; options: single, multi
-- dataset: options: panda, baxterfk, baxterik
+### Config
+- model: `absolute`; `mpoly_2`; `poly_2`; `residual`; `RKNN`; `way_2`; `ode`.
+- ODE_solver: `False`, rk4; `False`, dopri5(default).
+- obstacle : `True`, with obstacle; `False`, without obstacle.
+- base_dir : `.../NDE-based-Robot-Learning-Dynamics`, change before running.
+- step : `single`, single step; `multi`, multi-step.
+- dataset: `panda`, Panda robot pushing dataset; `baxterfk`, Baxter forward dynamics dataset; `baxterik`, Baxter inverse dynamics dataset.
 
 ### 1.1 Discrete ODE Learning V.S. Continuous ODE Learning
-Compare the prediction performance of the discrete ODE learning methods and the continuous ODE learning method.
+Compare the prediction performance of the discrete ODE learning methods and the continuous ODE learning methods.
 
 Discrete ODE Learning methods:
 - Absolute Dynamics Model (Baseline)
@@ -43,49 +42,74 @@ Discrete ODE Learning methods:
 - FractalNet Dynamics Model (Runge-Kutta)
 
 Continuous ODE Learning method:
-- Neural ODE    
+- Neural ODE (`dopri5` integration algorithm)
+- Neural ODE (`rk4` integration algorithm) (different step size: `0.5`, `0.25`, `0.1`)
 
-### 1.2 Single Step Learning V.S. Multi Step Learning
+### 1.2 Single Step Training V.S. Multi Step Training
 Learn the robot dynamics in single step manner and multi step manner, and then compare their performance.
-Firstly, collect data we need for training. We provide collected data and validation data under the /data folder.
+Collect the data for training. We provide collected data and validation data under the `/data` folder.
 ```bash
-# Change the data_path in the main function in collect_data.py
 python src/collect_data.py
 ```
- Then, run the single step training and multi step training. We also provide the weight we trained under the folder /ckpt.
+To run the training. We provide the weights we trained under th3 `/ckpt` folder.
  ```bash
-# Before training, change the ckpt_path and data_path
-python src/single_step_training.py
-python src/multi_step_training.py
+python src/single_step_training.py # Training discrete dynamics models in the single step pipeline
+python src/multi_step_training.py # Training discrete dynamics models in the multi step pipeline
+python src/neural_ode_learning.py # Training Neural ODE models in both single step and multi step pipelines
  ```
- 
-### 1.3 Neural ODE based Learning Dynamics
-Need a discussion!! Not sure about whether this is correct...
-
-We refer to torchdiffeq (https://github.com/rtqichen/torchdiffeq) for implementing the Neural ODE based Learning Dynamics. Since the odeint(_adjoint) method require the input and output dimension are the same and only take in two arguments (a time variable and a state variable), we have to concatenate the state x and the action u together and learn the IVP (Initial Value Problem) with the differential equation: concat(x(t+1), u(t+1))= concat(x(t), u(t)) + f'(x(t), u(t), t).
-
-Then, we use a MLP to project the prediction concat(x(t+1), u(t+1))' back to the state x(t+1)'.
-```bash
-# Before training, change the ckpt_path and data_path
-python src/neural_ode_learning.py
-```
+ To run the validation.
+ ```bash
+ python src/validation_error.py # Error validation for dynamics models on Panda pushing dataset
+ ```
 
 
 ## 2 Panda Robot Planning and Control
 ### 2.1 Obstacle Free Pushing
 ```bash
-# Change the ckpt_path and the dynamics model you need.
-python src/obstacle_free_pushing.py
+python src/obstacle_free_pushing.py # Obstacle free pushing using discrete models
+python src/obstacle_free_pushing_ode.py # Obstacle free pushing using Neural ODE models
 ```
 
 ### 2.2 Obstacle Avoidance Pushing
 ```bash
-# Change the ckpt_path and the dynamics model you need.
-python src/obstacle_avoidance_pushing.py
+python src/obstacle_avoidance_pushing.py # Obstacle avoidance pushing using discrete models
+python src/obstacle_avoidance_pushing_ode.py # Obstacle avoidance pushing using Neural ODE models
 ```
 
 ## 3 Robot Learning Dynamics for Other Open-Source Datasets
 ### 3.1 Forward Kinematics Learning
+We run training and testing on the Forward Dynamics Dataset Using KUKA LWR and Baxter.
 
+To run the training.
+```bash
+python src/single_step_training_FK.py # Training both discrete dynamics models and Neural ODE models in the single step pipeline
+python src/multi_step_training_FK.py # Training both discrete dynamics models and Neural ODE models in the multi step pipeline
+```
+To run the validation.
+```bash
+python src/validation_error.py # Error validation for dynamics models on Panda pushing dataset
+```
 
 ### 3.2 Inverse Kinematics Learning
+To be continued...
+
+
+## 4 References
+```bash
+@article{chen2018neuralode,
+  title={Neural Ordinary Differential Equations},
+  author={Chen, Ricky T. Q. and Rubanova, Yulia and Bettencourt, Jesse and Duvenaud, David},
+  journal={Advances in Neural Information Processing Systems},
+  year={2018}
+}
+```
+```bash
+@inproceedings{polydoros2016reservoir,
+  title={A reservoir computing approach for learning forward dynamics of industrial manipulators},
+  author={Polydoros, Athanasios S and Nalpantidis, Lazaros},
+  booktitle={2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  pages={612--618},
+  year={2016},
+  organization={IEEE}
+}
+```
